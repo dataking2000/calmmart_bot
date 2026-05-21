@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment Successful — CalmMart</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: #0d0d14;
+    color: #f0f0f8;
+    font-family: -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 24px;
+  }
+  .icon { font-size: 80px; margin-bottom: 20px; animation: bounce 0.6s ease; }
+  @keyframes bounce {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+  }
+  h1 { font-size: 28px; font-weight: 700; color: #00e5a0; margin-bottom: 10px; }
+  p { font-size: 15px; color: #6b7280; line-height: 1.6; margin-bottom: 30px; }
+  .btn {
+    background: #00e5a0;
+    color: #000;
+    border: none;
+    border-radius: 14px;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+  <div>
+    <div class="icon">🎉</div>
+    <h1>Payment Successful!</h1>
+    <p>Your CalmMart account is being activated. You'll receive a Telegram notification shortly.</p>
+    <button class="btn" onclick="goBack()">Return to App</button>
+  </div>
+  <script>
+    const tg = window.Telegram?.WebApp;
+    function goBack() {
+      if (tg) { tg.close(); }
+      else { window.history.back(); }
+    }
+    // Auto-close after 5 seconds if in Telegram
+    if (tg) { tg.ready(); setTimeout(() => tg.close(), 5000); }
+  </script>
+</body>
+</html>
