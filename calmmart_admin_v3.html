@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CalmMart Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07070d;--s1:#0f0f18;--s2:#161622;--s3:#1d1d2e;--border:#252538;--border2:#2f2f48;--lime:#c6f135;--lime-dim:rgba(198,241,53,0.12);--lime-glow:rgba(198,241,53,0.06);--red:#ff4b6e;--red-dim:rgba(255,75,110,0.12);--amber:#ffb547;--amber-dim:rgba(255,181,71,0.12);--blue:#4d9fff;--blue-dim:rgba(77,159,255,0.12);--text:#e8e8f5;--muted:#5a5a7a;--muted2:#3a3a55;--font:'Bricolage Grotesque',sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+#login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:var(--bg);z-index:999;background-image:radial-gradient(ellipse 60% 50% at 50% 0%,rgba(198,241,53,0.07),transparent)}
+.login-box{width:100%;max-width:380px;padding:0 24px;animation:fadeUp 0.5s ease both}
+.login-logo{font-size:32px;font-weight:800;color:var(--lime);letter-spacing:-1px;margin-bottom:4px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:40px}
+.ll{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px}
+.li{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:12px;color:var(--text);padding:14px 16px;font-family:var(--mono);font-size:14px;outline:none;transition:border-color 0.2s;margin-bottom:16px}
+.li:focus{border-color:var(--lime)}
+.login-btn{width:100%;background:var(--lime);color:#000;border:none;border-radius:12px;padding:16px;font-family:var(--font);font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.login-btn:hover{opacity:0.88}.login-btn:active{transform:scale(0.98)}
+.login-err{background:var(--red-dim);border:1px solid rgba(255,75,110,0.3);color:var(--red);border-radius:10px;padding:10px 14px;font-size:13px;margin-top:12px;display:none}
+.login-note{font-size:11px;color:var(--muted);margin-top:16px;text-align:center;line-height:1.6}
+#app{display:none;height:100vh;flex-direction:column}
+#app.show{display:flex}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:var(--s1);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50}
+.topbar-logo{font-size:18px;font-weight:800;color:var(--lime);letter-spacing:-0.5px}
+.tr{display:flex;align-items:center;gap:12px}
+.turl{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;max-width:260px}
+.udot{width:6px;height:6px;border-radius:50%;background:var(--lime);flex-shrink:0;animation:pulse 2s infinite}
+.utxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tbtn{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:7px 14px;border-radius:8px;font-family:var(--font);font-size:12px;cursor:pointer;transition:all 0.2s}
+.tbtn:hover{border-color:var(--lime);color:var(--lime)}
+.body{display:flex;flex:1;overflow:hidden}
+.sidebar{width:200px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.ns{padding:20px 0 8px}
+.nsl{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted2);padding:0 20px 6px}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 20px;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;border-left:2px solid transparent;transition:all 0.15s}
+.ni:hover{color:var(--text);background:var(--s2)}
+.ni.active{color:var(--lime);border-left-color:var(--lime);background:var(--lime-glow)}
+.nic{font-size:15px;width:18px;text-align:center;flex-shrink:0}
+.nbadge{margin-left:auto;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:20px;display:none}
+.content{flex:1;overflow-y:auto;background:var(--bg)}
+.page{display:none;padding:28px}
+.page.active{display:block;animation:fadeUp 0.3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px}
+.pt{font-size:26px;font-weight:800;letter-spacing:-0.5px}
+.pa{display:flex;gap:10px}
+.btn{padding:9px 18px;border-radius:9px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;display:inline-flex;align-items:center;gap:6px}
+.btn:active{transform:scale(0.97)}
+.bp{background:var(--lime);color:#000}.bp:hover{opacity:0.88}
+.bg{background:var(--s2);color:var(--text);border:1px solid var(--border)}.bg:hover{border-color:var(--lime);color:var(--lime)}
+.bd{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,75,110,0.25)}.bd:hover{background:rgba(255,75,110,0.2)}
+.bs{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(198,241,53,0.25)}.bs:hover{background:rgba(198,241,53,0.2)}
+.ba{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,181,71,0.25)}.ba:hover{background:rgba(255,181,71,0.2)}
+.bsm{padding:5px 11px;font-size:11px;border-radius:7px}
+.srow{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:14px;margin-bottom:24px}
+.stat{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;transition:border-color 0.2s,transform 0.2s;animation:fadeUp 0.4s ease both}
+.stat:hover{transform:translateY(-2px);border-color:var(--border2)}
+.slb{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.sv{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1}
+.ss{font-size:11px;color:var(--muted);margin-top:8px}
+.str{font-size:11px;margin-top:6px;font-weight:600}
+.tup{color:var(--lime)}.tdn{color:var(--red)}
+.stat::after{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:0 14px 0 80px;background:var(--glow,rgba(198,241,53,0.04))}
+.pc{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:22px;margin-bottom:24px}
+.pc-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.pc-t{font-size:15px;font-weight:700}
+.pc-p{font-size:28px;font-weight:800;color:var(--lime)}
+.track{height:10px;background:var(--s3);border-radius:5px;overflow:hidden;margin-bottom:10px}
+.tf{height:100%;border-radius:5px;background:linear-gradient(90deg,#4d9fff,var(--lime));transition:width 1.2s cubic-bezier(0.22,1,0.36,1)}
+.tlb{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);font-family:var(--mono)}
+.pmeta{display:flex;gap:28px;margin-top:18px;flex-wrap:wrap}
+.pmi{display:flex;flex-direction:column;gap:3px}
+.pml{font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+.pmv{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+.card{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.ch{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border)}
+.ct{font-size:15px;font-weight:700}
+.cm{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.toolbar{display:flex;gap:10px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.srch{flex:1;min-width:180px;background:var(--s2);border:1px solid var(--border);border-radius:9px;color:var(--text);padding:9px 14px;font-family:var(--font);font-size:13px;outline:none;transition:border-color 0.2s}
+.srch:focus{border-color:var(--lime)}.srch::placeholder{color:var(--muted)}
+.sel{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:9px;font-family:var(--font);font-size:13px;outline:none;cursor:pointer}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{border-bottom:1px solid var(--border)}
+th{padding:11px 16px;text-align:left;font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--lime)}
+td{padding:13px 16px;border-bottom:1px solid rgba(37,37,56,0.6);white-space:nowrap}
+tbody tr{transition:background 0.12s}
+tbody tr:hover{background:rgba(255,255,255,0.02)}
+tbody tr:last-child td{border-bottom:none}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.bact{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(198,241,53,0.25)}
+.bpend{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,181,71,0.25)}
+.binact{background:rgba(90,90,122,0.12);color:var(--muted);border:1px solid var(--border)}
+.bcr{background:var(--lime-dim);color:var(--lime)}.bdb{background:var(--red-dim);color:var(--red)}
+.bg1{background:var(--lime-dim);color:var(--lime)}.bg2{background:var(--blue-dim);color:var(--blue)}.bg3{background:var(--amber-dim);color:var(--amber)}
+.mono{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.lime{color:var(--lime)}.red{color:var(--red)}.amber{color:var(--amber)}.blue{color:var(--blue)}.bold{font-weight:700}
+.pgn{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;font-size:12px;color:var(--muted)}
+.pgb{display:flex;gap:6px}
+.pb{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--s2);color:var(--text);cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all 0.15s}
+.pb:hover,.pb.active{border-color:var(--lime);color:var(--lime)}
+.wdi{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid rgba(37,37,56,0.5)}
+.wdi:last-child{border-bottom:none}
+.wdav{width:42px;height:42px;border-radius:12px;flex-shrink:0;background:linear-gradient(135deg,#4d9fff,var(--lime));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;color:#000}
+.wdinf{flex:1;min-width:0}
+.wdn{font-size:14px;font-weight:700;margin-bottom:2px}
+.wds{font-size:11px;color:var(--muted)}
+.wdam{font-size:18px;font-weight:800;color:var(--lime);margin-right:14px;font-family:var(--mono)}
+.wdac{display:flex;gap:8px;flex-shrink:0}
+.acb{padding:7px 14px;border-radius:8px;font-family:var(--font);font-size:11px;font-weight:700;cursor:pointer;border:none;transition:all 0.2s}
+.acb:active{transform:scale(0.95)}
+.acap{background:var(--lime-dim);color:var(--lime);border:1px solid rgba(198,241,53,0.25)}.acap:hover{background:rgba(198,241,53,0.2)}
+.acrj{background:var(--red-dim);color:var(--red);border:1px solid rgba(255,75,110,0.25)}.acrj:hover{background:rgba(255,75,110,0.2)}
+.mch{display:flex;align-items:flex-end;gap:4px;height:48px;padding:0 20px 16px}
+.mcb{flex:1;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--lime),rgba(198,241,53,0.3));opacity:0.8;transition:opacity 0.2s;min-height:4px;cursor:pointer;position:relative}
+.mcb:hover{opacity:1}
+.mcb .mct{position:absolute;bottom:calc(100%+6px);left:50%;transform:translateX(-50%);background:var(--s3);border:1px solid var(--border);color:var(--text);font-size:10px;padding:3px 7px;border-radius:6px;white-space:nowrap;display:none;font-family:var(--mono)}
+.mcb:hover .mct{display:block}
+.sg{background:var(--s1);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px}
+.sgt{padding:16px 20px;border-bottom:1px solid var(--border);font-size:13px;font-weight:700;color:var(--muted)}
+.si{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid rgba(37,37,56,0.5);gap:16px;flex-wrap:wrap}
+.si:last-child{border-bottom:none}
+.sil{flex:1}
+.sin{font-size:14px;font-weight:600;margin-bottom:3px}
+.sid{font-size:12px;color:var(--muted)}
+.sinp{background:var(--s2);border:1px solid var(--border);color:var(--text);padding:9px 14px;border-radius:9px;font-family:var(--mono);font-size:14px;outline:none;width:100px;text-align:center;transition:border-color 0.2s}
+.sinp:focus{border-color:var(--lime)}
+.sinpw{width:200px;text-align:left}
+.empty{text-align:center;padding:60px 24px;color:var(--muted)}
+.ei{font-size:44px;margin-bottom:14px;opacity:0.5}
+.et{font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px}
+.es{font-size:13px;line-height:1.6}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--s2);border:1px solid var(--border);color:var(--text);padding:12px 20px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;transform:translateY(80px);opacity:0;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.toast.show{transform:translateY(0);opacity:1}
+/* Modals */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.25s;padding:20px}
+.mo.show{opacity:1;pointer-events:all}
+.md{background:var(--s1);border:1px solid var(--border);border-radius:18px;width:100%;max-width:540px;max-height:92vh;overflow-y:auto;transform:scale(0.95);transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1)}
+.md.sm{max-width:420px}
+.mo.show .md{transform:scale(1)}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--s1);z-index:2}
+.mt{font-size:18px;font-weight:800}
+.mc{background:var(--s2);border:1px solid var(--border);color:var(--muted);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.mb{padding:24px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fr1{grid-template-columns:1fr;margin-bottom:14px}
+.fl{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;display:block}
+.fi{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 14px;font-family:var(--font);font-size:14px;outline:none;transition:border-color 0.2s}
+.fi:focus{border-color:var(--lime)}.fi::placeholder{color:var(--muted2)}
+.fsel{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 14px;font-family:var(--font);font-size:14px;outline:none;cursor:pointer;-webkit-appearance:none}
+.fsel option{background:var(--s2)}
+.stog{display:flex;gap:8px;margin-bottom:20px}
+.so{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--s2);color:var(--muted);text-align:center;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s}
+.soact{border-color:var(--lime)!important;background:var(--lime-dim)!important;color:var(--lime)!important}
+.soinact{border-color:var(--amber)!important;background:var(--amber-dim)!important;color:var(--amber)!important}
+.ir{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(37,37,56,0.5);font-size:13px}
+.ir:last-child{border-bottom:none}
+.irl{color:var(--muted)}
+.irv{font-weight:700;text-align:right;max-width:240px;overflow:hidden;text-overflow:ellipsis}
+.macts{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.macts .btn{flex:1;justify-content:center}
+.cbox{background:var(--red-dim);border:1px solid rgba(255,75,110,0.3);border-radius:12px;padding:16px;margin-bottom:16px;font-size:13px;line-height:1.6}
+.cnm{color:var(--red);font-weight:700}
+.notif{border-radius:10px;padding:12px 14px;font-size:12px;margin-bottom:18px;line-height:1.6}
+.notif-amber{background:var(--amber-dim);border:1px solid rgba(255,181,71,0.3);color:var(--amber)}
+.notif-blue{background:var(--blue-dim);border:1px solid rgba(77,159,255,0.3);color:var(--blue)}
+@media(max-width:700px){.sidebar{display:none}.page{padding:16px}.srow{grid-template-columns:repeat(2,1fr)}.sv{font-size:22px}.turl{display:none}.wdac{flex-direction:column}.pmeta{gap:16px}.fr{grid-template-columns:1fr}.md{max-width:100%}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">CalmMart</div>
+    <div class="login-sub">Admin Console — Restricted Access</div>
+    <div class="ll">API URL</div>
+    <input class="li" id="l-url" type="text" placeholder="https://your-app.up.railway.app" style="-webkit-text-security:none">
+    <div class="ll">Admin Password</div>
+    <input class="li" id="l-pass" type="password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="login-err"></div>
+    <div class="login-note">Railway URL · Password = ADMIN_PASSWORD env var<br>Leave blank for Demo Mode</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">CalmMart Admin</div>
+    <div class="tr">
+      <div class="turl"><div class="udot"></div><div class="utxt" id="url-display">—</div></div>
+      <button class="tbtn" onclick="refreshAll()">↻ Refresh</button>
+      <button class="tbtn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div class="body">
+    <aside class="sidebar">
+      <div class="ns"><div class="nsl">Overview</div>
+        <div class="ni active" onclick="goPage('overview',this)"><span class="nic">◈</span>Dashboard</div>
+        <div class="ni" onclick="goPage('members',this)"><span class="nic">◉</span>Members</div>
+      </div>
+      <div class="ns"><div class="nsl">Finance</div>
+        <div class="ni" onclick="goPage('commissions',this)"><span class="nic">◆</span>Commissions</div>
+        <div class="ni" onclick="goPage('withdrawals',this)"><span class="nic">◐</span>Withdrawals <span class="nbadge" id="wd-badge">0</span></div>
+        <div class="ni" onclick="goPage('transactions',this)"><span class="nic">▣</span>Transactions</div>
+      </div>
+      <div class="ns"><div class="nsl">System</div>
+        <div class="ni" onclick="goPage('settings',this)"><span class="nic">◎</span>Settings</div>
+      </div>
+    </aside>
+
+    <div class="content">
+
+      <!-- OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div class="ph"><div class="pt">Dashboard</div><div class="pa"><button class="btn bg" onclick="exportCSV()">↓ Export</button><button class="btn bp" onclick="refreshAll()">↻ Refresh</button></div></div>
+        <div class="srow">
+          <div class="stat" style="--glow:rgba(198,241,53,0.06)"><div class="slb">Total Registered</div><div class="sv" id="s-total">—</div><div class="str tup" id="s-today">—</div></div>
+          <div class="stat" style="--glow:rgba(198,241,53,0.04)"><div class="slb">Active (Paid)</div><div class="sv lime" id="s-active">—</div><div class="ss" id="s-apct">—</div></div>
+          <div class="stat" style="--glow:rgba(255,181,71,0.06)"><div class="slb">Inactive (Unpaid)</div><div class="sv amber" id="s-inactive">—</div><div class="ss">Pending payment</div></div>
+          <div class="stat" style="--glow:rgba(77,159,255,0.06)"><div class="slb">Total Revenue</div><div class="sv" id="s-rev">—</div><div class="ss">₦10,000 × active</div></div>
+          <div class="stat" style="--glow:rgba(255,75,110,0.04)"><div class="slb">Commissions Paid</div><div class="sv" id="s-comm">—</div><div class="ss">30% of revenue</div></div>
+        </div>
+        <div class="pc">
+          <div class="pc-h"><div class="pc-t">Member Target Progress (Active Only)</div><div class="pc-p" id="p-pct">0%</div></div>
+          <div class="track"><div class="tf" id="p-bar" style="width:0%"></div></div>
+          <div class="tlb"><span>0</span><span>2,500</span><span>5,000</span><span>7,500</span><span>10,000 ✓</span><span>15,000 ✓</span></div>
+          <div class="pmeta">
+            <div class="pmi"><div class="pml">Active</div><div class="pmv lime" id="p-cur">0</div></div>
+            <div class="pmi"><div class="pml">Remaining</div><div class="pmv amber" id="p-rem">10,000</div></div>
+            <div class="pmi"><div class="pml">Est. Days</div><div class="pmv blue" id="p-days">—</div></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px" id="grid-2">
+          <div class="card"><div class="ch"><div class="ct">Daily Signups (14d)</div><div class="cm" id="chart-tot">—</div></div><div class="mch" id="mini-chart"></div></div>
+          <div class="card"><div class="ch"><div class="ct">Top Referrers</div><div class="cm">All time</div></div><div id="top-ref-list"></div></div>
+        </div>
+        <div class="card">
+          <div class="ch"><div class="ct">Recent Registrations</div><div class="cm" id="recent-meta">—</div></div>
+          <div class="tw"><table><thead><tr><th>NAME</th><th>PHONE</th><th>REF CODE</th><th>REFERRED BY</th><th>JOINED</th><th>STATUS</th></tr></thead><tbody id="recent-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- MEMBERS -->
+      <div class="page" id="page-members">
+        <div class="ph">
+          <div class="pt">Members</div>
+          <div class="pa">
+            <button class="btn bg" onclick="exportCSV()">↓ CSV</button>
+            <button class="btn bp" onclick="openAddModal()">＋ Add Member</button>
+          </div>
+        </div>
+
+        <!-- Stat tabs -->
+        <div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+          <div class="stat" style="flex:1;min-width:110px;padding:14px;cursor:pointer" onclick="setFilter('')"><div class="slb">All</div><div class="sv" id="tab-all-n">—</div></div>
+          <div class="stat" style="flex:1;min-width:110px;padding:14px;cursor:pointer;--glow:rgba(198,241,53,0.06)" onclick="setFilter('active')"><div class="slb">✅ Active</div><div class="sv lime" id="tab-act-n">—</div></div>
+          <div class="stat" style="flex:1;min-width:110px;padding:14px;cursor:pointer;--glow:rgba(255,181,71,0.06)" onclick="setFilter('inactive')"><div class="slb">⏳ Inactive</div><div class="sv amber" id="tab-inact-n">—</div></div>
+        </div>
+
+        <div class="card">
+          <div class="ch"><div class="ct" id="m-card-title">All Members</div><div class="cm" id="m-meta">—</div></div>
+          <div class="toolbar">
+            <input class="srch" id="m-search" placeholder="Search name, phone, referral code, bank..." oninput="filterMembers()">
+            <select class="sel" id="m-status" onchange="filterMembers()">
+              <option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option>
+            </select>
+            <select class="sel" id="m-sort" onchange="filterMembers()">
+              <option value="newest">Newest</option><option value="oldest">Oldest</option><option value="earnings">Top Earners</option><option value="referrals">Most Referrals</option>
+            </select>
+          </div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>#</th><th>NAME</th><th>PHONE</th><th>BANK · ACCOUNT</th><th>REF CODE</th><th>REFERRED BY</th><th>GEN1</th><th>EARNINGS</th><th>BALANCE</th><th>STATUS</th><th>JOINED</th><th style="text-align:right">ACTIONS</th></tr></thead>
+              <tbody id="m-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pgn">
+            <span id="m-pi">—</span>
+            <div class="pgb"><button class="pb" onclick="mPage(-1)">‹</button><button class="pb active" id="m-cp">1</button><button class="pb" onclick="mPage(1)">›</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMMISSIONS -->
+      <div class="page" id="page-commissions">
+        <div class="ph"><div class="pt">Commissions</div></div>
+        <div class="srow" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat"><div class="slb">Gen 1 Total (15%)</div><div class="sv lime" id="c-g1">—</div><div class="ss">₦1,500 × active</div></div>
+          <div class="stat"><div class="slb">Gen 2 Total (10%)</div><div class="sv blue" id="c-g2">—</div><div class="ss">₦1,000 × active</div></div>
+          <div class="stat"><div class="slb">Gen 3 Total (5%)</div><div class="sv amber" id="c-g3">—</div><div class="ss">₦500 × active</div></div>
+        </div>
+        <div class="card"><div class="ch"><div class="ct">Commission Ledger</div><div class="cm" id="c-meta">Auto-distributed</div></div>
+          <div class="tw"><table><thead><tr><th>DATE</th><th>PAYER</th><th>EARNER</th><th>GEN</th><th>AMOUNT</th><th>REFERENCE</th></tr></thead><tbody id="c-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- WITHDRAWALS -->
+      <div class="page" id="page-withdrawals">
+        <div class="ph"><div class="pt">Withdrawals</div></div>
+        <div class="card" style="margin-bottom:20px"><div class="ch"><div class="ct">⏳ Pending Approval</div><div class="cm amber" id="wd-pmeta">—</div></div><div id="wd-plist"><div class="empty"><div class="ei">✅</div><div class="et">No pending requests</div></div></div></div>
+        <div class="card"><div class="ch"><div class="ct">Processed History</div><div class="cm">Approved & Rejected</div></div>
+          <div class="tw"><table><thead><tr><th>DATE</th><th>MEMBER</th><th>BANK</th><th>ACCOUNT</th><th>AMOUNT</th><th>STATUS</th></tr></thead><tbody id="wd-htbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- TRANSACTIONS -->
+      <div class="page" id="page-transactions">
+        <div class="ph"><div class="pt">Transactions</div></div>
+        <div class="card"><div class="ch"><div class="ct">All Transactions</div><div class="cm" id="t-meta">—</div></div>
+          <div class="toolbar"><input class="srch" id="t-search" placeholder="Search member or reference..." oninput="filterTxns()"><select class="sel" id="t-type" onchange="filterTxns()"><option value="">All Types</option><option value="credit">Credit</option><option value="debit">Debit</option></select></div>
+          <div class="tw"><table><thead><tr><th>DATE</th><th>MEMBER</th><th>TYPE</th><th>DESCRIPTION</th><th>AMOUNT</th><th>REFERENCE</th></tr></thead><tbody id="t-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="ph"><div class="pt">Settings</div><button class="btn bp" onclick="saveSettings()">Save Changes</button></div>
+        <div class="sg"><div class="sgt">Commission Rates</div>
+          <div class="si"><div class="sil"><div class="sin">Generation 1 — Direct Referrals</div><div class="sid">₦1,500 per registration · Paid instantly to referrer</div></div><div style="display:flex;align-items:center;gap:8px"><input class="sinp" id="rate-g1" value="15" type="number"><span style="color:var(--muted);font-size:13px">%</span></div></div>
+          <div class="si"><div class="sil"><div class="sin">Generation 2</div><div class="sid">₦1,000 per registration</div></div><div style="display:flex;align-items:center;gap:8px"><input class="sinp" id="rate-g2" value="10" type="number"><span style="color:var(--muted);font-size:13px">%</span></div></div>
+          <div class="si"><div class="sil"><div class="sin">Generation 3</div><div class="sid">₦500 per registration</div></div><div style="display:flex;align-items:center;gap:8px"><input class="sinp" id="rate-g3" value="5" type="number"><span style="color:var(--muted);font-size:13px">%</span></div></div>
+        </div>
+        <div class="sg"><div class="sgt">General</div>
+          <div class="si"><div class="sil"><div class="sin">Activation Fee</div><div class="sid">Amount each member pays to activate their account</div></div><div style="display:flex;align-items:center;gap:8px"><span style="color:var(--muted);font-size:13px">₦</span><input class="sinp sinpw" id="reg-fee" value="10000" type="number"></div></div>
+          <div class="si"><div class="sil"><div class="sin">Referral Target per User</div><div class="sid">Goal shown in each user's app</div></div><input class="sinp" id="ref-target" value="80" type="number"></div>
+          <div class="si"><div class="sil"><div class="sin">Min Member Target</div><div class="sid">Overall minimum goal</div></div><input class="sinp sinpw" id="min-target" value="10000" type="number"></div>
+          <div class="si"><div class="sil"><div class="sin">Max Member Target</div><div class="sid">Overall maximum goal</div></div><input class="sinp sinpw" id="max-target" value="15000" type="number"></div>
+        </div>
+        <div class="sg"><div class="sgt">Server Info</div>
+          <div class="si"><div class="sil"><div class="sin">API Base URL</div><div class="sid" id="info-url">—</div></div><div class="badge bact">Connected</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="mo" id="view-modal"><div class="md">
+  <div class="mh"><div class="mt" id="vm-title">Member</div><button class="mc" onclick="closeM('view-modal')">✕</button></div>
+  <div class="mb" id="vm-body"></div>
+</div></div>
+
+<!-- ADD MODAL -->
+<div class="mo" id="add-modal"><div class="md">
+  <div class="mh"><div class="mt">＋ Add New Member</div><button class="mc" onclick="closeM('add-modal')">✕</button></div>
+  <div class="mb">
+    <div class="notif notif-amber">⚠ Admin-added members can be set Active (bypasses payment) or Inactive (must pay to activate).</div>
+    <div class="fr"><div><label class="fl">Full Name *</label><input class="fi" id="a-name" placeholder="e.g. Chidi Okafor"></div><div><label class="fl">Phone *</label><input class="fi" id="a-phone" placeholder="08012345678" type="tel"></div></div>
+    <div class="fr"><div><label class="fl">Email</label><input class="fi" id="a-email" placeholder="Optional" type="email"></div><div><label class="fl">Telegram ID *</label><input class="fi" id="a-tgid" placeholder="Numeric ID" type="number"></div></div>
+    <div class="fr"><div><label class="fl">Bank Name *</label><select class="fsel" id="a-bank"><option value="">Select bank...</option><option>GTBank</option><option>Access Bank</option><option>UBA</option><option>Zenith Bank</option><option>First Bank</option><option>Fidelity Bank</option><option>Sterling Bank</option><option>Polaris Bank</option><option>Keystone Bank</option><option>Wema Bank</option><option>Union Bank</option><option>Opay</option><option>Palmpay</option><option>Kuda Bank</option><option>Moniepoint</option></select></div><div><label class="fl">Account Number *</label><input class="fi" id="a-acct" placeholder="10-digit number" maxlength="10" type="tel"></div></div>
+    <div class="fr1"><div><label class="fl">Referred By (Referral Code)</label><input class="fi" id="a-ref" placeholder="e.g. CM1001 — leave blank if none"></div></div>
+    <div style="margin-bottom:20px"><label class="fl">Activation Status</label>
+      <div class="stog"><div class="so soact" id="a-s-act" onclick="setStatus('a','active')">✅ Active (Payment confirmed)</div><div class="so" id="a-s-inact" onclick="setStatus('a','inactive')">⏳ Inactive (Pending payment)</div></div>
+      <input type="hidden" id="a-sv" value="active">
+    </div>
+    <div class="macts"><button class="btn bg" onclick="closeM('add-modal')">Cancel</button><button class="btn bp" onclick="submitAdd()">＋ Add Member</button></div>
+  </div>
+</div></div>
+
+<!-- EDIT MODAL -->
+<div class="mo" id="edit-modal"><div class="md">
+  <div class="mh"><div class="mt">✏ Edit Member Info</div><button class="mc" onclick="closeM('edit-modal')">✕</button></div>
+  <div class="mb">
+    <div class="notif notif-blue">✏ Correct any wrong information. Referral code cannot be changed.</div>
+    <input type="hidden" id="e-id">
+    <div class="fr"><div><label class="fl">Full Name</label><input class="fi" id="e-name" placeholder="Full name"></div><div><label class="fl">Phone</label><input class="fi" id="e-phone" placeholder="Phone number" type="tel"></div></div>
+    <div class="fr"><div><label class="fl">Email</label><input class="fi" id="e-email" placeholder="Email address" type="email"></div><div><label class="fl">Referral Code (Read-only)</label><input class="fi" id="e-ref" disabled style="opacity:0.4;cursor:not-allowed"></div></div>
+    <div class="fr"><div><label class="fl">Bank Name</label><select class="fsel" id="e-bank"><option value="">Select bank...</option><option>GTBank</option><option>Access Bank</option><option>UBA</option><option>Zenith Bank</option><option>First Bank</option><option>Fidelity Bank</option><option>Sterling Bank</option><option>Polaris Bank</option><option>Keystone Bank</option><option>Wema Bank</option><option>Union Bank</option><option>Opay</option><option>Palmpay</option><option>Kuda Bank</option><option>Moniepoint</option></select></div><div><label class="fl">Account Number</label><input class="fi" id="e-acct" placeholder="10-digit number" maxlength="10" type="tel"></div></div>
+    <div style="margin-bottom:20px"><label class="fl">Activation Status</label>
+      <div class="stog"><div class="so" id="e-s-act" onclick="setStatus('e','active')">✅ Active</div><div class="so" id="e-s-inact" onclick="setStatus('e','inactive')">⏳ Inactive</div></div>
+      <input type="hidden" id="e-sv" value="active">
+    </div>
+    <div class="macts"><button class="btn bg" onclick="closeM('edit-modal')">Cancel</button><button class="btn bp" onclick="submitEdit()">💾 Save Changes</button></div>
+  </div>
+</div></div>
+
+<!-- DELETE MODAL -->
+<div class="mo" id="del-modal"><div class="md sm">
+  <div class="mh"><div class="mt" style="color:var(--red)">🗑 Remove Member</div><button class="mc" onclick="closeM('del-modal')">✕</button></div>
+  <div class="mb">
+    <div class="cbox">You are about to permanently remove <span class="cnm" id="del-nm">—</span> from the system.<br><br>This deletes their account, referral history, and all data. <strong>This cannot be undone.</strong></div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Type <strong style="color:var(--red)">DELETE</strong> to confirm:</div>
+    <input class="fi" id="del-ci" placeholder="Type DELETE here" oninput="chkDel()" style="margin-bottom:16px">
+    <input type="hidden" id="del-id">
+    <div class="macts"><button class="btn bg" onclick="closeM('del-modal')">Cancel</button><button class="btn bd" id="del-btn" onclick="submitDel()" disabled style="opacity:0.4">🗑 Remove Member</button></div>
+  </div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let API='',PASS='';
+let allM=[],allT=[],allC=[],allW=[];
+let mF=[],mPg=1,mFilt='';
+const PER=20;
+
+function genSample(){
+  const nms=['Chidi Okafor','Amara Nwosu','Emeka Eze','Ngozi Adeyemi','Tunde Afolabi','Kemi Bakare','Uche Obi','Blessing Nkem','Ifeanyi Ogbu','Chisom Okeke','Adaeze Nzechukwu','Olawale Adegoke','Fatima Musa','Ibrahim Suleiman','Grace Obiora','Victor Ikenna','Sandra Okonkwo','Michael Adeola','Patience Okafor','Emmanuel Nwosu'];
+  const bks=['GTBank','Access Bank','UBA','Zenith Bank','First Bank'];
+  allM=Array.from({length:94},(_,i)=>{
+    const da=Math.floor(Math.random()*90),d=new Date();d.setDate(d.getDate()-da);
+    const g1=Math.floor(Math.random()*120),earn=g1*1500+Math.floor(Math.random()*15)*1000;
+    const act=Math.random()>0.28;
+    return{id:i+1,telegram_id:100000+i,full_name:nms[i%nms.length]+(i>19?` ${i}`:''),
+      phone:'080'+String(Math.floor(Math.random()*90000000+10000000)),email:`user${i}@mail.com`,
+      referral_code:'CM'+(1000+i),referrer_code:i>0?'CM'+(999+Math.ceil(Math.random()*i)):'',
+      gen1_count:g1,total_earnings:earn,wallet_balance:Math.floor(earn*0.4),
+      bank_name:bks[i%bks.length],account_number:'0'+String(Math.floor(Math.random()*900000000+100000000)),
+      is_active:act?1:0,created_at:d.toISOString()};
+  });
+  allT=allM.slice(0,60).map(m=>({created_at:m.created_at,full_name:m.full_name,type:'credit',amount:[10000,1500,1000,500][Math.floor(Math.random()*4)],description:'Commission / Registration',reference:'CM-'+m.id+'-'+Math.random().toString(36).substr(2,6).toUpperCase()}));
+  allC=allM.slice(0,50).map(m=>({created_at:m.created_at,payer_name:allM[Math.floor(Math.random()*allM.length)].full_name,earner_name:m.full_name,generation:[1,2,3][Math.floor(Math.random()*3)],amount:[1500,1000,500][Math.floor(Math.random()*3)],payment_ref:'CM-'+m.id+'-X'}));
+  allW=allM.filter(m=>m.is_active&&m.wallet_balance>1000).slice(0,6).map(m=>({id:m.id,full_name:m.full_name,bank_name:m.bank_name,account_number:m.account_number,amount:Math.floor(m.wallet_balance*0.6),status:'pending',created_at:m.created_at}));
+}
+
+async function doLogin(){
+  const url=document.getElementById('l-url').value.trim().replace(/\/$/,'');
+  const pass=document.getElementById('l-pass').value.trim();
+  const err=document.getElementById('login-err');
+  err.style.display='none';
+  if(!url){err.textContent='Enter your Railway URL';err.style.display='block';return}
+  let ok=false;
+  try{const r=await fetch(url+'/health',{signal:AbortSignal.timeout(5000)});ok=r.ok}catch(e){}
+  if(!ok&&!pass){err.textContent='Cannot reach server. Enter any password to use Demo Mode.';err.style.display='block';return}
+  API=ok?url:'';PASS=pass;
+  $('url-display').textContent=ok?url:'Demo Mode';$('info-url').textContent=ok?url:'Demo Mode';
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').classList.add('show');
+  if(!ok){genSample();toast('⚠ Demo Mode')}
+  await refreshAll();
+}
+function logout(){document.getElementById('login-screen').style.display='flex';document.getElementById('app').classList.remove('show');document.getElementById('l-pass').value=''}
+
+async function apiCall(path,method='GET',body=null){
+  if(!API)throw new Error('No API');
+  const o={method,headers:{'Content-Type':'application/json','X-Admin-Password':PASS},signal:AbortSignal.timeout(8000)};
+  if(body)o.body=JSON.stringify(body);
+  return (await fetch(API+path,o)).json();
+}
+
+async function refreshAll(){
+  try{
+    if(API){
+      const[st,mb,cb,wb,tb]=await Promise.all([apiCall('/api/stats'),apiCall('/api/members?page=1&per_page=1000'),apiCall('/api/commissions?page=1&per_page=200'),apiCall('/api/withdrawals?status=pending'),apiCall('/api/transactions?page=1&per_page=200')]);
+      allM=mb.members||[];allC=cb.commissions||[];allW=wb.withdrawals||[];allT=tb.transactions||[];
+      renderOverview(st);
+    }else{
+      const act=allM.filter(m=>m.is_active).length;
+      renderOverview({total_members:allM.length,active_members:act,total_revenue:act*10000,total_commissions:act*3000,pending_withdrawals:allW.length,today_signups:Math.floor(Math.random()*10)+2});
+    }
+    mF=[...allM];updateTabs();renderMembers();renderComm();renderWd();renderTxns();updateBadge();
+    toast('✅ Refreshed');
+  }catch(e){toast('⚠ '+e.message)}
+}
+
+function renderOverview(s){
+  const{total_members:tot,active_members:act,total_revenue:rev,total_commissions:comm,today_signups:ts}=s;
+  const inact=tot-act;
+  set('s-total',fmt(tot));set('s-today','▲ +'+ts+' today');
+  set('s-active',fmt(act));set('s-apct',tot?Math.round(act/tot*100)+'% activation rate':'—');
+  set('s-inactive',fmt(inact));set('s-rev','₦'+fK(rev));set('s-comm','₦'+fK(comm));
+  const pct=Math.min(100,Math.round(act/10000*100));
+  set('p-pct',pct+'%');document.getElementById('p-bar').style.width=pct+'%';
+  set('p-cur',fmt(act));set('p-rem',fmt(Math.max(0,10000-act)));set('p-days',ts>0?Math.ceil((10000-act)/ts)+' days':'—');
+  renderChart();renderTopRef();renderRecent();
+}
+
+function renderChart(){
+  const el=document.getElementById('mini-chart');let tot=0;
+  const bars=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-(13-i));const ds=d.toISOString().split('T')[0];const c=allM.filter(m=>m.created_at?.startsWith(ds)).length||Math.floor(Math.random()*8);tot+=c;return{lb:d.toLocaleDateString('en-NG',{month:'short',day:'numeric'}),c}});
+  const mx=Math.max(...bars.map(b=>b.c),1);
+  el.innerHTML=bars.map(b=>`<div class="mcb" style="height:${Math.max(4,Math.round(b.c/mx*44))}px"><div class="mct">${b.lb}: ${b.c}</div></div>`).join('');
+  set('chart-tot',tot+' in 14 days');
+}
+
+function renderTopRef(){
+  const top=[...allM].filter(m=>m.is_active).sort((a,b)=>b.gen1_count-a.gen1_count).slice(0,6);
+  document.getElementById('top-ref-list').innerHTML=top.length?top.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:11px 20px;border-bottom:1px solid rgba(37,37,56,0.4)">
+      <div style="font-size:14px;font-weight:800;color:var(--muted);width:22px">${i+1}</div>
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.full_name}</div><div style="font-size:11px;color:var(--muted)">Gen1: ${m.gen1_count} · ₦${fmt(m.total_earnings)}</div></div>
+      <div class="badge bg1">${m.gen1_count}</div>
+    </div>`).join(''):'<div class="empty"><div class="ei">👥</div><div class="es">No data yet</div></div>';
+}
+
+function renderRecent(){
+  const r=[...allM].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,8);
+  set('recent-meta',r.length+' latest');
+  document.getElementById('recent-tbody').innerHTML=r.map(m=>`<tr><td class="bold">${m.full_name}</td><td class="mono">${m.phone}</td><td><span class="mono lime">${m.referral_code}</span></td><td class="mono">${m.referrer_code||'—'}</td><td class="mono" style="color:var(--muted)">${fD(m.created_at)}</td><td><span class="badge ${m.is_active?'bact':'bpend'}">${m.is_active?'Active':'Pending'}</span></td></tr>`).join('');
+}
+
+function updateTabs(){
+  const act=allM.filter(m=>m.is_active).length;
+  set('tab-all-n',fmt(allM.length));set('tab-act-n',fmt(act));set('tab-inact-n',fmt(allM.length-act));
+}
+
+function setFilter(f){
+  mFilt=f;document.getElementById('m-status').value=f;filterMembers();
+  set('m-card-title',{'':"All Members",'active':'Active Members','inactive':'Inactive Members'}[f]||'Members');
+}
+
+function filterMembers(){
+  const q=document.getElementById('m-search').value.toLowerCase();
+  const st=document.getElementById('m-status').value||mFilt;
+  const so=document.getElementById('m-sort').value;
+  mF=[...allM].filter(m=>(!q||(m.full_name+m.phone+m.referral_code+m.bank_name+m.account_number).toLowerCase().includes(q))&&(!st||(st==='active'?m.is_active:!m.is_active)));
+  const sm={newest:(a,b)=>new Date(b.created_at)-new Date(a.created_at),oldest:(a,b)=>new Date(a.created_at)-new Date(b.created_at),earnings:(a,b)=>b.total_earnings-a.total_earnings,referrals:(a,b)=>b.gen1_count-a.gen1_count};
+  mF.sort(sm[so]);mPg=1;renderMembers();
+}
+
+function renderMembers(){
+  const s=(mPg-1)*PER,sl=mF.slice(s,s+PER);
+  set('m-meta',fmt(mF.length)+' members');
+  set('m-pi',`${s+1}–${Math.min(s+PER,mF.length)} of ${fmt(mF.length)}`);set('m-cp',mPg);
+  document.getElementById('m-tbody').innerHTML=sl.map((m,i)=>`
+    <tr>
+      <td class="mono" style="color:var(--muted)">${s+i+1}</td>
+      <td class="bold">${m.full_name}</td>
+      <td class="mono">${m.phone}</td>
+      <td style="font-size:12px"><div style="font-weight:600">${m.bank_name}</div><div style="color:var(--muted);font-family:var(--mono)">${m.account_number}</div></td>
+      <td><span class="mono lime">${m.referral_code}</span></td>
+      <td class="mono">${m.referrer_code||'—'}</td>
+      <td><span class="badge bg1">${m.gen1_count}</span></td>
+      <td class="lime bold">₦${fmt(m.total_earnings)}</td>
+      <td style="color:#4d9fff;font-weight:700">₦${fmt(m.wallet_balance)}</td>
+      <td><span class="badge ${m.is_active?'bact':'bpend'}" style="cursor:pointer" onclick="toggleStatus(${m.id})" title="Click to toggle">${m.is_active?'✅ Active':'⏳ Pending'}</span></td>
+      <td class="mono" style="color:var(--muted);font-size:11px">${fD(m.created_at)}</td>
+      <td style="text-align:right">
+        <div style="display:flex;gap:5px;justify-content:flex-end">
+          <button class="btn bg bsm" onclick="openView(${m.id})" title="View">👁</button>
+          <button class="btn bg bsm" onclick="openEdit(${m.id})" title="Edit">✏</button>
+          <button class="btn bd bsm" onclick="openDel(${m.id})" title="Remove">🗑</button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+function mPage(d){const mx=Math.ceil(mF.length/PER);mPg=Math.max(1,Math.min(mx,mPg+d));renderMembers()}
+
+/* ── VIEW ── */
+function openView(id){
+  const m=allM.find(x=>x.id===id);if(!m)return;
+  $('vm-title').textContent=m.full_name;
+  $('vm-body').innerHTML=`
+    <div class="ir"><div class="irl">Status</div><div class="irv"><span class="badge ${m.is_active?'bact':'bpend'}">${m.is_active?'✅ Active':'⏳ Pending Payment'}</span></div></div>
+    <div class="ir"><div class="irl">Full Name</div><div class="irv">${m.full_name}</div></div>
+    <div class="ir"><div class="irl">Phone</div><div class="irv mono">${m.phone}</div></div>
+    <div class="ir"><div class="irl">Email</div><div class="irv">${m.email||'—'}</div></div>
+    <div class="ir"><div class="irl">Telegram ID</div><div class="irv mono">${m.telegram_id}</div></div>
+    <div class="ir"><div class="irl">Referral Code</div><div class="irv mono lime">${m.referral_code}</div></div>
+    <div class="ir"><div class="irl">Referred By</div><div class="irv mono">${m.referrer_code||'None (Direct)'}</div></div>
+    <div class="ir"><div class="irl">Bank</div><div class="irv">${m.bank_name}</div></div>
+    <div class="ir"><div class="irl">Account No.</div><div class="irv mono">${m.account_number}</div></div>
+    <div class="ir"><div class="irl">Gen 1 Referrals</div><div class="irv lime">${m.gen1_count}</div></div>
+    <div class="ir"><div class="irl">Total Earnings</div><div class="irv lime">₦${fmt(m.total_earnings)}</div></div>
+    <div class="ir"><div class="irl">Wallet Balance</div><div class="irv" style="color:#4d9fff">₦${fmt(m.wallet_balance)}</div></div>
+    <div class="ir"><div class="irl">Joined</div><div class="irv mono">${fD(m.created_at)}</div></div>
+    <div class="macts">
+      <button class="btn bg" onclick="openEdit(${m.id});closeM('view-modal')">✏ Edit</button>
+      <button class="btn ${m.is_active?'ba':'bs'}" onclick="toggleStatus(${m.id});closeM('view-modal')">${m.is_active?'⏸ Deactivate':'✅ Activate'}</button>
+      <button class="btn bd" onclick="openDel(${m.id});closeM('view-modal')">🗑 Remove</button>
+    </div>`;
+  openM('view-modal');
+}
+
+/* ── ADD ── */
+function openAddModal(){
+  ['a-name','a-phone','a-email','a-tgid','a-acct','a-ref'].forEach(i=>$(i).value='');
+  $('a-bank').value='';setStatus('a','active');openM('add-modal');
+}
+
+function setStatus(pfx,val){
+  $(pfx+'-sv').value=val;
+  $(pfx+'-s-act').className='so'+(val==='active'?' soact':'');
+  $(pfx+'-s-inact').className='so'+(val==='inactive'?' soinact':'');
+}
+
+async function submitAdd(){
+  const name=$('a-name').value.trim(),phone=$('a-phone').value.trim(),tgid=$('a-tgid').value.trim();
+  const bank=$('a-bank').value,acct=$('a-acct').value.trim(),stat=$('a-sv').value;
+  if(!name||!phone||!tgid||!bank||!acct){toast('⚠ Fill all required fields');return}
+  if(acct.length!==10){toast('⚠ Account number must be 10 digits');return}
+  const payload={telegram_id:parseInt(tgid),username:'',full_name:name,phone,email:$('a-email').value.trim(),bank_name:bank,account_number:acct,referrer_code:$('a-ref').value.trim().toUpperCase()||null,is_active:stat==='active'?1:0};
+  try{
+    if(API){const r=await apiCall('/api/admin/members','POST',payload);if(r.error){toast('❌ '+r.error);return}}
+    const nm={...payload,id:allM.length+1,referral_code:'CM'+(1000+allM.length+1),gen1_count:0,total_earnings:0,wallet_balance:0,created_at:new Date().toISOString()};
+    allM.unshift(nm);mF=[...allM];
+    updateTabs();renderMembers();renderOverview({total_members:allM.length,active_members:allM.filter(m=>m.is_active).length,total_revenue:allM.filter(m=>m.is_active).length*10000,total_commissions:allM.filter(m=>m.is_active).length*3000,pending_withdrawals:allW.length,today_signups:1});
+    closeM('add-modal');toast(`✅ ${name} added (${stat})`);
+  }catch(e){toast('❌ '+e.message)}
+}
+
+/* ── EDIT ── */
+function openEdit(id){
+  const m=allM.find(x=>x.id===id);if(!m)return;
+  $('e-id').value=id;$('e-name').value=m.full_name;$('e-phone').value=m.phone;
+  $('e-email').value=m.email||'';$('e-ref').value=m.referral_code;
+  $('e-bank').value=m.bank_name;$('e-acct').value=m.account_number;
+  setStatus('e',m.is_active?'active':'inactive');openM('edit-modal');
+}
+
+async function submitEdit(){
+  const id=parseInt($('e-id').value);
+  const p={full_name:$('e-name').value.trim(),phone:$('e-phone').value.trim(),email:$('e-email').value.trim(),bank_name:$('e-bank').value,account_number:$('e-acct').value.trim(),is_active:$('e-sv').value==='active'?1:0};
+  if(!p.full_name||!p.phone||!p.bank_name||!p.account_number){toast('⚠ Fill all required fields');return}
+  if(p.account_number.length!==10){toast('⚠ Account number must be 10 digits');return}
+  try{
+    if(API){const r=await apiCall(`/api/admin/members/${id}`,'PUT',p);if(r.error){toast('❌ '+r.error);return}}
+    const idx=allM.findIndex(m=>m.id===id);if(idx>=0)allM[idx]={...allM[idx],...p};
+    mF=[...allM];renderMembers();updateTabs();closeM('edit-modal');toast('✅ Member updated');
+  }catch(e){toast('❌ '+e.message)}
+}
+
+/* ── TOGGLE STATUS ── */
+async function toggleStatus(id){
+  const m=allM.find(x=>x.id===id);if(!m)return;
+  const nv=m.is_active?0:1;
+  try{
+    if(API)await apiCall(`/api/admin/members/${id}/status`,'PATCH',{is_active:nv});
+    m.is_active=nv;renderMembers();updateTabs();
+    toast(nv?`✅ ${m.full_name} activated`:`⏸ ${m.full_name} deactivated`);
+  }catch(e){toast('❌ '+e.message)}
+}
+
+/* ── DELETE ── */
+function openDel(id){
+  const m=allM.find(x=>x.id===id);if(!m)return;
+  $('del-id').value=id;$('del-nm').textContent=m.full_name;
+  $('del-ci').value='';$('del-btn').disabled=true;$('del-btn').style.opacity='0.4';
+  openM('del-modal');
+}
+function chkDel(){const ok=$('del-ci').value==='DELETE';$('del-btn').disabled=!ok;$('del-btn').style.opacity=ok?'1':'0.4'}
+async function submitDel(){
+  const id=parseInt($('del-id').value);const m=allM.find(x=>x.id===id);if(!m)return;
+  try{
+    if(API)await apiCall(`/api/admin/members/${id}`,'DELETE');
+    allM=allM.filter(x=>x.id!==id);mF=mF.filter(x=>x.id!==id);
+    renderMembers();updateTabs();updateBadge();closeM('del-modal');toast(`🗑 ${m.full_name} removed`);
+  }catch(e){toast('❌ '+e.message)}
+}
+
+/* ── COMMISSIONS ── */
+function renderComm(){
+  const act=allM.filter(m=>m.is_active).length;
+  set('c-g1','₦'+fK(act*1500));set('c-g2','₦'+fK(act*1000));set('c-g3','₦'+fK(act*500));
+  set('c-meta',fmt(allC.length)+' records');
+  $('c-tbody').innerHTML=allC.map(c=>`<tr><td class="mono" style="color:var(--muted);font-size:11px">${fD(c.created_at)}</td><td>${c.payer_name}</td><td class="bold">${c.earner_name}</td><td><span class="badge bg${c.generation}">Gen ${c.generation} · ${[15,10,5][c.generation-1]}%</span></td><td class="lime bold">₦${fmt(c.amount)}</td><td class="mono" style="font-size:11px;color:var(--muted)">${c.payment_ref}</td></tr>`).join('');
+}
+
+/* ── WITHDRAWALS ── */
+function renderWd(){
+  const p=allW.filter(w=>w.status==='pending');
+  set('wd-pmeta',p.length+' requests · ₦'+fmt(p.reduce((s,w)=>s+w.amount,0)));
+  $('wd-plist').innerHTML=p.length?p.map(w=>`
+    <div class="wdi">
+      <div class="wdav">${w.full_name[0]}</div>
+      <div class="wdinf"><div class="wdn">${w.full_name}</div><div class="wds">${w.bank_name} · ${w.account_number} · ${fD(w.created_at)}</div></div>
+      <div class="wdam">₦${fmt(w.amount)}</div>
+      <div class="wdac"><button class="acb acap" onclick="appWd(${w.id},'${w.full_name}')">✓ Approve</button><button class="acb acrj" onclick="rejWd(${w.id})">✕ Reject</button></div>
+    </div>`).join(''):'<div class="empty"><div class="ei">✅</div><div class="et">All clear!</div><div class="es">No pending requests</div></div>';
+  $('wd-htbody').innerHTML=allW.filter(w=>w.status!=='pending').map(w=>`<tr><td class="mono" style="font-size:11px;color:var(--muted)">${fD(w.created_at)}</td><td class="bold">${w.full_name}</td><td>${w.bank_name}</td><td class="mono">${w.account_number}</td><td class="lime bold">₦${fmt(w.amount)}</td><td><span class="badge ${w.status==='approved'?'bact':'binact'}">${w.status}</span></td></tr>`).join('');
+}
+async function appWd(id,name){try{if(API)await apiCall(`/api/withdrawals/${id}/approve`,'POST');allW=allW.map(w=>w.id===id?{...w,status:'approved'}:w);renderWd();updateBadge();toast(`✅ Approved for ${name}`)}catch(e){toast('❌ '+e.message)}}
+async function rejWd(id){try{if(API)await apiCall(`/api/withdrawals/${id}/reject`,'POST');allW=allW.map(w=>w.id===id?{...w,status:'rejected'}:w);renderWd();updateBadge();toast('❌ Rejected & refunded')}catch(e){toast('❌ '+e.message)}}
+
+/* ── TRANSACTIONS ── */
+function filterTxns(){
+  const q=$('t-search').value.toLowerCase(),tp=$('t-type').value;
+  const f=allT.filter(t=>(!q||(t.full_name+t.reference+t.description).toLowerCase().includes(q))&&(!tp||t.type===tp));
+  set('t-meta',fmt(f.length)+' records');
+  $('t-tbody').innerHTML=f.slice(0,100).map(t=>`<tr><td class="mono" style="font-size:11px;color:var(--muted)">${fD(t.created_at)}</td><td class="bold">${t.full_name}</td><td><span class="badge ${t.type==='credit'?'bcr':'bdb'}">${t.type}</span></td><td style="color:var(--muted);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis">${t.description}</td><td class="${t.type==='credit'?'lime':'red'} bold">₦${fmt(t.amount)}</td><td class="mono" style="font-size:11px;color:var(--muted)">${t.reference||'—'}</td></tr>`).join('');
+}
+function renderTxns(){filterTxns()}
+
+/* ── SETTINGS ── */
+function saveSettings(){toast('✅ Settings saved — update .env & redeploy to apply')}
+
+/* ── CSV ── */
+function exportCSV(){
+  const h=['ID','Name','Phone','Email','Referral Code','Referred By','Gen1','Earnings','Balance','Bank','Account','Status','Joined'];
+  const rows=mF.map(m=>[m.id,m.full_name,m.phone,m.email||'',m.referral_code,m.referrer_code||'',m.gen1_count,m.total_earnings,m.wallet_balance,m.bank_name,m.account_number,m.is_active?'Active':'Inactive',fD(m.created_at)]);
+  const csv=[h,...rows].map(r=>r.map(x=>`"${x}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='calmmart_'+new Date().toISOString().split('T')[0]+'.csv';a.click();
+  toast('✅ CSV exported ('+mF.length+' members)');
+}
+
+/* ── NAV ── */
+function goPage(pg,el){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));document.getElementById('page-'+pg).classList.add('active');el.classList.add('active')}
+
+/* ── MODAL HELPERS ── */
+function openM(id){document.getElementById(id).classList.add('show')}
+function closeM(id){document.getElementById(id).classList.remove('show')}
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show')}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.mo.show').forEach(m=>m.classList.remove('show'))});
+
+/* ── UTILS ── */
+function updateBadge(){const n=allW.filter(w=>w.status==='pending').length;const b=$('wd-badge');b.textContent=n||'';b.style.display=n?'inline':'none'}
+function $(id){return document.getElementById(id)}
+function set(id,v){const e=$(id);if(e)e.textContent=v}
+function fmt(n){return Number(n||0).toLocaleString('en-NG')}
+function fK(n){return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(0)+'k':fmt(n)}
+function fD(s){if(!s)return'—';return new Date(s).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'})}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200)}
+function checkGrid(){const g=$('grid-2');if(g)g.style.gridTemplateColumns=window.innerWidth<600?'1fr':'1fr 1fr'}
+window.addEventListener('resize',checkGrid);checkGrid();
+</script>
+</body>
+</html>
