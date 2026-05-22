@@ -30,7 +30,12 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="CalmMart Web App")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static files safely
+import os as _os
+if _os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+else:
+    logger.warning("⚠ static/ folder not found — Web App UI will not be served")
 
 BOT_TOKEN    = os.getenv("BOT_TOKEN")
 TELEGRAM_API = f"https://api.telegram.org/bot{BOT_TOKEN}"
@@ -57,7 +62,9 @@ commission = CommissionEngine(db)
 # ── Static / Health ────────────────────────────────────────────
 @app.get("/")
 async def serve_app():
-    return FileResponse("static/index.html")
+    if _os.path.exists("static/index.html"):
+        return FileResponse("static/index.html")
+    return JSONResponse({"status": "CalmMart API running", "static": "not found — upload static/index.html"})
 
 @app.on_event("startup")
 async def startup_event():
