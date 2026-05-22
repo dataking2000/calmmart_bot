@@ -59,41 +59,23 @@ commission = CommissionEngine(db)
 async def serve_app():
     return FileResponse("static/index.html")
 
+@app.on_event("startup")
+async def startup_event():
+    """Start the Telegram bot in a background thread when server starts."""
+    try:
+        from bot import run_bot_in_background
+        run_bot_in_background()
+        logger.info("✅ Bot background thread started")
+    except Exception as e:
+        logger.error(f"Failed to start bot: {e}")
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok", "service": "CalmMart Web App"}
 
 
-# ── Bot Webhook Route ──────────────────────────────────────────
-# Telegram sends bot updates here (webhook mode — no polling conflicts)
-from telegram import Update as TGUpdate
-from telegram.ext import Application as TGApplication
 
-_tg_app: TGApplication = None
-
-async def get_tg_app() -> TGApplication:
-    """Lazy-load the Telegram application for webhook handling."""
-    global _tg_app
-    if _tg_app is None:
-        import bot as bot_module
-        _tg_app = bot_module.build_app()
-        await _tg_app.initialize()
-        await _tg_app.start()
-        logger.info("✅ Telegram bot initialized in webhook mode")
-    return _tg_app
-
-@app.post("/bot/webhook")
-async def bot_webhook(request: Request):
-    """Receives updates from Telegram and passes to bot handlers."""
-    try:
-        data = await request.json()
-        tg_app = await get_tg_app()
-        update = TGUpdate.de_json(data, tg_app.bot)
-        await tg_app.process_update(update)
-        return JSONResponse({"status": "ok"})
-    except Exception as e:
-        logger.error(f"Bot webhook error: {e}")
-        return JSONResponse({"status": "error"}, status_code=500)
 
 
 # ── Auth ───────────────────────────────────────────────────────
