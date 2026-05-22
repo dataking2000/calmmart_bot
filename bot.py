@@ -1,18 +1,14 @@
 """
 CalmMart Ltd — Telegram Web App Bot
-- Single instance lock (prevents duplicate bot processes)
-- Launches the Mini App inside Telegram
-- Referrals: unlimited, minimum 80 encouraged
+Uses WEBHOOK mode instead of polling — eliminates all Conflict errors.
+Telegram pushes updates to the server; no duplicate instance issues.
 """
 
 import os
 import sys
 import logging
-import fcntl
-import atexit
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo, MenuButtonWebApp
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from telegram.error import Conflict
 from database import Database
 from dotenv import load_dotenv
 
@@ -25,39 +21,12 @@ logger = logging.getLogger(__name__)
 
 BOT_TOKEN  = os.getenv("BOT_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://yourdomain.com")
-LOCK_FILE  = "/tmp/calmmart_bot.lock"
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "")  # e.g. https://calmmart.up.railway.app/webhook/paystack
+# Bot webhook path — different from Paystack webhook
+BOT_WEBHOOK_PATH = "/bot/webhook"
+BOT_WEBHOOK_URL  = os.getenv("WEBAPP_URL", "").rstrip("/") + BOT_WEBHOOK_PATH
 
 db = Database()
-
-
-# ── Single Instance Lock ───────────────────────────────────────
-def acquire_lock():
-    """
-    Prevents more than one bot process from running at the same time.
-    Uses a file lock so any second instance exits immediately.
-    """
-    try:
-        lock_fd = open(LOCK_FILE, "w")
-        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        lock_fd.write(str(os.getpid()))
-        lock_fd.flush()
-
-        # Release lock when process exits
-        def release():
-            try:
-                fcntl.flock(lock_fd, fcntl.LOCK_UN)
-                lock_fd.close()
-                os.remove(LOCK_FILE)
-            except Exception:
-                pass
-
-        atexit.register(release)
-        logger.info(f"✅ Bot instance lock acquired (PID {os.getpid()})")
-        return lock_fd
-
-    except BlockingIOError:
-        logger.error("❌ Another bot instance is already running. Exiting.")
-        sys.exit(1)
 
 
 # ── Handlers ───────────────────────────────────────────────────
@@ -109,7 +78,6 @@ async def set_menu_button(app: Application):
 
 
 async def handle_webapp_data(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Receives any data sent from Web App via Telegram.sendData()"""
     data = update.effective_message.web_app_data.data
     logger.info(f"WebApp data: {data}")
 
@@ -136,39 +104,33 @@ async def referral_stats(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE):
-    """Handle Conflict errors from duplicate bot instances."""
-    if isinstance(context.error, Conflict):
-        logger.error("❌ Conflict: Another bot instance is running. Shutting down.")
-        sys.exit(1)
-    logger.error(f"Update error: {context.error}")
-
-
-# ── Main ───────────────────────────────────────────────────────
-def main():
-    # Prevent duplicate instances
-    acquire_lock()
-
+# ── Build app ──────────────────────────────────────────────────
+def build_app() -> Application:
     if not BOT_TOKEN:
-        logger.error("❌ BOT_TOKEN not set in environment variables.")
+        logger.error("❌ BOT_TOKEN not set.")
         sys.exit(1)
 
     app = Application.builder().token(BOT_TOKEN).build()
-
-    # Register handlers
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("stats", referral_stats))
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, handle_webapp_data))
-    app.add_error_handler(error_handler)
-
-    # Set menu button on startup
     app.post_init = set_menu_button
+    return app
 
-    logger.info("🚀 CalmMart Bot starting (single instance mode)...")
-    app.run_polling(
-        allowed_updates=Update.ALL_TYPES,
-        drop_pending_updates=True,    # ignore old queued updates on restart
-        close_loop=False,
+
+# ── Main — webhook mode ────────────────────────────────────────
+def main():
+    app = build_app()
+
+    logger.info(f"🚀 CalmMart Bot starting in WEBHOOK mode...")
+    logger.info(f"📡 Webhook URL: {BOT_WEBHOOK_URL}")
+
+    app.run_webhook(
+        listen        = "0.0.0.0",
+        port          = int(os.getenv("BOT_PORT", "8443")),
+        webhook_url   = BOT_WEBHOOK_URL,
+        url_path      = BOT_WEBHOOK_PATH,
+        drop_pending_updates = True,
     )
 
 
