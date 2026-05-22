@@ -469,10 +469,6 @@ async def process_payment(reference: str):
         _tpl_activation(user, ref_link, next_wd)
     )
 
-    # ── WhatsApp ──────────────────────────────────────────────────
-        f"📅 Next withdrawal: {next_wd}\n\n"
-        f"- CalmMart Ltd"
-    )
 
     # ── Referrers ─────────────────────────────────────────────────
     for r in comm_records:
@@ -500,9 +496,6 @@ async def _notify_registration(user: dict, ref_link: str):
         user.get("email",""), user["full_name"],
         "Welcome to CalmMart Ltd — Complete Your Registration",
         _tpl_registered(user, ref_link)
-    )
-        f"⚠ Pay ₦10,000 to activate your account and start earning.\n\n"
-        f"- CalmMart Ltd"
     )
 
 
