@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>CalmMart</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Cabinet+Grotesk:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d14;
+  --card: #16161f;
+  --card2: #1e1e2a;
+  --border: #2c2c3e;
+  --green: #00e5a0;
+  --purple: #8b5cf6;
+  --orange: #f97316;
+  --text: #f0f0f8;
+  --muted: #6b7280;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --radius: 16px;
+  --tg-color-scheme: dark;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  overflow: hidden;
+}
+
+/* ── App Shell ── */
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ── Screens ── */
+.screen {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 80px;
+}
+.screen.active { display: flex; flex-direction: column; }
+
+/* ── Bottom Nav ── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(22,22,31,0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 env(safe-area-inset-bottom, 8px);
+  z-index: 100;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0.5;
+}
+.nav-btn.active { opacity: 1; }
+.nav-btn.active .nav-icon { color: var(--green); }
+.nav-icon { font-size: 22px; transition: transform 0.2s; }
+.nav-btn.active .nav-icon { transform: translateY(-2px); }
+.nav-label { font-size: 10px; letter-spacing: 0.5px; }
+
+/* ── Loading Screen ── */
+#screen-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+.loader-wrap { text-align: center; }
+.loader-logo {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 8px;
+  animation: fadeIn 0.5s ease;
+}
+.loader-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── Register Screen ── */
+#screen-register { padding: 0; }
+
+.register-hero {
+  background: linear-gradient(135deg, #0d0d14 0%, #1a0a2e 50%, #0a1a0f 100%);
+  padding: 48px 24px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.register-hero::before {
+  content: '';
+  position: absolute;
+  top: -50px; left: 50%;
+  transform: translateX(-50%);
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(0,229,160,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-logo {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.hero-tagline {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+.hero-pills {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pill {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+.pill-green { border-color: rgba(0,229,160,0.4); color: var(--green); background: rgba(0,229,160,0.08); }
+.pill-purple { border-color: rgba(139,92,246,0.4); color: #a78bfa; background: rgba(139,92,246,0.08); }
+.pill-orange { border-color: rgba(249,115,22,0.4); color: #fb923c; background: rgba(249,115,22,0.08); }
+
+/* Commission cards */
+.comm-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 20px 16px 0;
+}
+.comm-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+}
+.comm-gen { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+.comm-pct { font-family: 'Clash Display', sans-serif; font-size: 24px; font-weight: 700; line-height: 1; margin-bottom: 2px; }
+.comm-amt { font-size: 11px; color: var(--muted); }
+
+/* Form */
+.form-wrap { padding: 24px 16px; }
+.form-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 22px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.form-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+.field input, .field select {
+  width: 100%;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 14px 16px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  -webkit-appearance: none;
+}
+.field input:focus, .field select:focus { border-color: var(--green); }
+.field input::placeholder { color: var(--muted); }
+.field select option { background: var(--card2); }
+
+.ref-display {
+  background: rgba(0,229,160,0.08);
+  border: 1px solid rgba(0,229,160,0.25);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--green);
+  margin-bottom: 14px;
+  display: none;
+}
+.ref-display.show { display: block; }
+
+.pay-btn {
+  width: 100%;
+  background: var(--green);
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  padding: 18px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.pay-btn:active { transform: scale(0.98); opacity: 0.9; }
+.pay-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Dashboard Screen ── */
+#screen-home { padding: 0; }
+
+.home-header {
+  padding: 24px 20px 16px;
+  background: linear-gradient(180deg, #0a0a12 0%, var(--bg) 100%);
+}
+.home-greeting { font-size: 13px; color: var(--muted); margin-bottom: 2px; }
+.home-name {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+/* Balance card */
+.balance-card {
+  margin: 0 16px 20px;
+  background: linear-gradient(135deg, #0f2027, #203a43, #0d1117);
+  border: 1px solid rgba(0,229,160,0.2);
+  border-radius: var(--radius);
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.balance-card::after {
+  content: '';
+  position: absolute;
+  top: -30px; right: -30px;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, rgba(0,229,160,0.2), transparent 70%);
+}
+.balance-label { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+.balance-amount {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.balance-total { font-size: 12px; color: rgba(255,255,255,0.4); }
+.balance-actions { display: flex; gap: 10px; margin-top: 20px; }
+.bal-btn {
+  flex: 1;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  padding: 12px;
+  color: var(--text);
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.bal-btn:active { background: rgba(255,255,255,0.14); }
+.bal-btn.primary { background: var(--green); color: #000; border-color: var(--green); }
+
+/* Quick stats */
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+  padding: 0 16px 20px;
+}
+.qs-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: center;
+}
+.qs-val {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+.qs-label { font-size: 10px; color: var(--muted); }
+
+/* Target progress */
+.target-wrap { padding: 0 16px 20px; }
+.target-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.target-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.target-title { font-size: 14px; font-weight: 700; }
+.target-num { font-family: 'Clash Display', sans-serif; font-size: 20px; font-weight: 700; color: var(--green); }
+.track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.track-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--purple), var(--green));
+  transition: width 1s ease;
+}
+.track-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+
+/* Referral link card */
+.ref-card-wrap { padding: 0 16px 20px; }
+.ref-card {
+  background: var(--card);
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: var(--radius);
+  padding: 18px;
+}
+.ref-card-title { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+.ref-link-box {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 12px;
+  color: var(--purple);
+  word-break: break-all;
+  margin-bottom: 12px;
+  font-family: monospace;
+}
+.ref-btns { display: flex; gap: 8px; }
+.ref-btn {
+  flex: 1;
+  border: none;
+  border-radius: 10px;
+  padding: 12px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ref-btn:active { transform: scale(0.97); }
+.ref-btn-copy { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+.ref-btn-share { background: var(--green); color: #000; }
+
+/* Recent transactions */
+.section-title {
+  padding: 0 16px 12px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+.txn-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(44,44,62,0.5);
+}
+.txn-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.txn-icon.credit { background: rgba(0,229,160,0.12); }
+.txn-icon.debit { background: rgba(239,68,68,0.12); }
+.txn-info { flex: 1; min-width: 0; }
+.txn-desc { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.txn-date { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.txn-amount { font-family: 'Clash Display', sans-serif; font-size: 16px; font-weight: 700; }
+.txn-amount.credit { color: var(--green); }
+.txn-amount.debit { color: var(--danger); }
+
+/* ── Network Screen ── */
+#screen-network { padding: 0; }
+
+.network-header {
+  padding: 24px 20px 16px;
+  background: linear-gradient(180deg, #0a0a12 0%, var(--bg) 100%);
+}
+.network-header h1 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.network-header p { font-size: 13px; color: var(--muted); }
+
+/* Gen tabs */
+.gen-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 16px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.gen-tab {
+  flex-shrink: 0;
+  padding: 10px 20px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.gen-tab.active-g1 { border-color: var(--green); color: var(--green); background: rgba(0,229,160,0.1); }
+.gen-tab.active-g2 { border-color: #a78bfa; color: #a78bfa; background: rgba(139,92,246,0.1); }
+.gen-tab.active-g3 { border-color: var(--orange); color: var(--orange); background: rgba(249,115,22,0.1); }
+
+/* Network stat row */
+.net-stats {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 10px;
+  padding: 0 16px 16px;
+}
+.net-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.net-stat-val {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+}
+.net-stat-label { font-size: 10px; color: var(--muted); margin-top: 4px; }
+.net-stat-earn { font-size: 11px; margin-top: 4px; font-weight: 600; }
+
+/* Member list */
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(44,44,62,0.4);
+}
+.member-avatar {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--purple), var(--green));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.member-info { flex: 1; }
+.member-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.member-sub { font-size: 11px; color: var(--muted); }
+.member-badge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+.badge-g1 { background: rgba(0,229,160,0.12); color: var(--green); }
+.badge-g2 { background: rgba(139,92,246,0.12); color: #a78bfa; }
+.badge-g3 { background: rgba(249,115,22,0.12); color: var(--orange); }
+
+.load-more-btn {
+  width: calc(100% - 32px);
+  margin: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 14px;
+  border-radius: 12px;
+  font-family: 'Cabinet Grotesk', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.load-more-btn:active { background: var(--card2); }
+
+/* Empty state */
+.empty-state {
+  text-align: center;
+  padding: 60px 32px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 48px; margin-bottom: 12px; }
+.empty-title { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+.empty-sub { font-size: 13px; line-height: 1.6; }
+
+/* ── Wallet Screen ── */
+#screen-wallet { padding: 0; }
+
+.wallet-header {
+  padding: 24px 20px 20px;
+  background: linear-gradient(180deg, #0a0a12 0%, var(--bg) 100%);
+}
+.wallet-header h1 {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.big-balance {
+  margin: 0 16px 20px;
+  background: linear-gradient(135deg, #0d0d20, #1a0a2e);
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.big-balance::before {
+  content: '';
+  position: absolute;
+  bottom: -40px; right: -40px;
+  width: 150px; height: 150px;
+  background: radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%);
+}
+.big-balance-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 10px; }
+.big-balance-amount {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 44px;
+  font-weight: 700;
+  color: #a78bfa;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.big-balance-earned { font-size: 13px; color: var(--muted); }
+
+.withdraw-section { padding: 0 16px 20px; }
+.withdraw-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+.withdraw-input-wrap {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.amount-row { display: flex; align-items: center; gap: 10px; }
+.currency-label {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.amount-input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text);
+  width: 100%;
+}
+.amount-input::placeholder { color: var(--border); }
+.amount-hint { font-size: 11px; color: var(--muted); margin-top: 8px; }
+
+.bank-info {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 14px;
+}
+.bank-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+.bank-row-label { color: var(--muted); }
+.bank-row-val { font-weight: 700; }
+
+.withdraw-btn {
+  width: 100%;
+  background: #a78bfa;
+  color: #000;
+  border: none;
+  border-radius: 14px;
+  padding: 18px;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.withdraw-btn:active { transform: scale(0.98); }
+.withdraw-btn:disabled { opacity: 0.4; }
+
+/* ── Profile Screen ── */
+#screen-profile { padding: 0; }
+
+.profile-header {
+  padding: 32px 20px 24px;
+  text-align: center;
+  background: linear-gradient(180deg, #0a0a12 0%, var(--bg) 100%);
+}
+.profile-avatar {
+  width: 80px; height: 80px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--green), var(--purple));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 auto 12px;
+}
+.profile-name {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.profile-code {
+  display: inline-block;
+  background: rgba(0,229,160,0.1);
+  border: 1px solid rgba(0,229,160,0.3);
+  color: var(--green);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-family: monospace;
+}
+
+.profile-list { padding: 0 16px; }
+.profile-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 10px;
+}
+.profile-item-left { display: flex; align-items: center; gap: 12px; }
+.profile-item-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.profile-item-label { font-size: 13px; color: var(--muted); }
+.profile-item-val { font-size: 14px; font-weight: 700; }
+.profile-item-arrow { color: var(--muted); font-size: 18px; }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 20px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 999;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  white-space: nowrap;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  padding: 24px 20px 40px;
+  width: 100%;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal-overlay.show .modal { transform: translateY(0); }
+.modal-handle {
+  width: 40px; height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+.modal-title {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  text-align: center;
+}
+.modal-body { text-align: center; }
+.modal-amount {
+  font-family: 'Clash Display', sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 6px;
+}
+.modal-desc { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+.modal-btns { display: flex; gap: 10px; }
+.modal-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Clash Display', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-btn:active { transform: scale(0.97); }
+.modal-btn-cancel { background: var(--card2); color: var(--muted); }
+.modal-btn-confirm { background: var(--green); color: #000; }
+
+/* Utilities */
+.hidden { display: none !important; }
+.green { color: var(--green); }
+.purple { color: #a78bfa; }
+.orange { color: var(--orange); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Loading -->
+  <div id="screen-loading" style="display:flex">
+    <div class="loader-wrap">
+      <div class="loader-logo">CalmMart</div>
+      <div class="loader-sub">Nigeria's Referral Network</div>
+      <div class="spinner"></div>
+    </div>
+  </div>
+
+  <!-- Register -->
+  <div id="screen-register" class="screen">
+    <div class="register-hero">
+      <div class="hero-logo">CalmMart</div>
+      <div class="hero-tagline">Nigeria's fastest-growing referral network</div>
+      <div class="hero-pills">
+        <span class="pill pill-green">Free to Join</span>
+        <span class="pill pill-purple">3 Gen Network</span>
+        <span class="pill pill-orange">80+ Referrals</span>
+      </div>
+    </div>
+
+    <div class="comm-cards">
+      <div class="comm-card">
+        <div class="comm-gen">Gen 1</div>
+        <div class="comm-pct green">15%</div>
+        <div class="comm-amt">₦1,500</div>
+      </div>
+      <div class="comm-card">
+        <div class="comm-gen">Gen 2</div>
+        <div class="comm-pct purple">10%</div>
+        <div class="comm-amt">₦1,000</div>
+      </div>
+      <div class="comm-card">
+        <div class="comm-gen">Gen 3</div>
+        <div class="comm-pct orange">5%</div>
+        <div class="comm-amt">₦500</div>
+      </div>
+    </div>
+
+    <div class="form-wrap">
+      <div class="form-title">Join for Free</div>
+      <div class="form-sub">Register instantly · Pay ₦10,000 to activate & withdraw</div>
+
+      <div class="ref-display" id="ref-display"></div>
+
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="f-name" placeholder="e.g. Chidi Okafor" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Phone Number</label>
+        <input type="tel" id="f-phone" placeholder="08012345678" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label>Email (Optional)</label>
+        <input type="email" id="f-email" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="field">
+        <label>Bank Name</label>
+        <select id="f-bank">
+          <option value="">Select bank...</option>
+          <option>GTBank</option><option>Access Bank</option><option>UBA</option>
+          <option>Zenith Bank</option><option>First Bank</option><option>Fidelity Bank</option>
+          <option>Sterling Bank</option><option>Polaris Bank</option><option>Keystone Bank</option>
+          <option>Wema Bank</option><option>Union Bank</option><option>Opay</option>
+          <option>Palmpay</option><option>Kuda Bank</option><option>Moniepoint</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Account Number</label>
+        <input type="tel" id="f-account" placeholder="10-digit account number" maxlength="10">
+      </div>
+
+      <button class="pay-btn" id="pay-btn" onclick="submitRegistration()">
+        <span>🚀</span> Register for Free
+      </button>
+    </div>
+  </div>
+
+  <!-- Home / Dashboard -->
+  <div id="screen-home" class="screen">
+    <div class="home-header">
+      <div class="home-greeting">Welcome back 👋</div>
+      <div class="home-name" id="home-name">Loading...</div>
+    </div>
+
+    <!-- Activation banner — shown only for inactive users -->
+    <div id="activate-banner" style="display:none;margin:0 16px 16px;background:linear-gradient(135deg,#1a0a00,#2a1500);border:1px solid rgba(245,158,11,0.4);border-radius:16px;padding:18px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:22px;">⚠️</span>
+        <div style="font-family:'Clash Display',sans-serif;font-size:16px;font-weight:700;color:#f59e0b;">Account Not Activated</div>
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.6);margin-bottom:14px;line-height:1.5;">
+        Pay the ₦10,000 activation fee to unlock withdrawals and start earning commissions from your referrals.
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="payActivationFee()" style="flex:1;background:#f59e0b;color:#000;border:none;border-radius:10px;padding:12px;font-family:'Clash Display',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">💳 Pay ₦10,000 Now</button>
+        <button onclick="copyRef()" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;border-radius:10px;padding:12px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">🔗 Share Link</button>
+      </div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:10px;text-align:center;">You already have a referral link — share it while you wait!</div>
+    </div>
+
+    <div class="balance-card">
+      <div class="balance-label">Wallet Balance</div>
+      <div class="balance-amount" id="home-balance">₦0</div>
+      <div class="balance-total" id="home-earned">Total earned: ₦0</div>
+      <div class="balance-actions">
+        <button class="bal-btn" onclick="showScreen('wallet')">💸 Withdraw</button>
+        <button class="bal-btn primary" onclick="shareRef()">🔗 Refer & Earn</button>
+      </div>
+    </div>
+
+    <div class="quick-stats">
+      <div class="qs-card">
+        <div class="qs-val green" id="qs-gen1">0</div>
+        <div class="qs-label">Gen 1</div>
+      </div>
+      <div class="qs-card">
+        <div class="qs-val purple" id="qs-gen2">0</div>
+        <div class="qs-label">Gen 2</div>
+      </div>
+      <div class="qs-card">
+        <div class="qs-val orange" id="qs-gen3">0</div>
+        <div class="qs-label">Gen 3</div>
+      </div>
+    </div>
+
+    <!-- Referral target progress -->
+    <div class="target-wrap">
+      <div class="target-card">
+        <div class="target-header">
+          <div class="target-title">🎯 Referral Target</div>
+          <div class="target-num" id="target-pct">0%</div>
+        </div>
+        <div class="track">
+          <div class="track-fill" id="target-bar" style="width:0%"></div>
+        </div>
+        <div class="track-labels">
+          <span id="track-current">0 referrals</span>
+          <span>Target: 80</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Referral link -->
+    <div class="ref-card-wrap">
+      <div class="ref-card">
+        <div class="ref-card-title">🔗 Your Referral Link</div>
+        <div class="ref-link-box" id="ref-link-text">Loading...</div>
+        <div class="ref-btns">
+          <button class="ref-btn ref-btn-copy" onclick="copyRef()">📋 Copy</button>
+          <button class="ref-btn ref-btn-share" onclick="shareRef()">↗ Share</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent transactions -->
+    <div class="section-title">Recent Activity</div>
+    <div id="home-txns"></div>
+  </div>
+
+  <!-- Network -->
+  <div id="screen-network" class="screen">
+    <div class="network-header">
+      <h1>My Network</h1>
+      <p>Your unlimited referral chain</p>
+    </div>
+
+    <div class="net-stats">
+      <div class="net-stat">
+        <div class="net-stat-val green" id="net-g1">0</div>
+        <div class="net-stat-label">Gen 1</div>
+        <div class="net-stat-earn green" id="net-g1-earn">₦0</div>
+      </div>
+      <div class="net-stat">
+        <div class="net-stat-val purple" id="net-g2">0</div>
+        <div class="net-stat-label">Gen 2</div>
+        <div class="net-stat-earn purple" id="net-g2-earn">₦0</div>
+      </div>
+      <div class="net-stat">
+        <div class="net-stat-val orange" id="net-g3">0</div>
+        <div class="net-stat-label">Gen 3</div>
+        <div class="net-stat-earn orange" id="net-g3-earn">₦0</div>
+      </div>
+    </div>
+
+    <div class="gen-tabs">
+      <div class="gen-tab active-g1" id="tab-g1" onclick="setGenTab(1)">Gen 1 (Direct)</div>
+      <div class="gen-tab" id="tab-g2" onclick="setGenTab(2)">Gen 2</div>
+      <div class="gen-tab" id="tab-g3" onclick="setGenTab(3)">Gen 3</div>
+    </div>
+
+    <div id="network-list"></div>
+    <button class="load-more-btn hidden" id="load-more-btn" onclick="loadMoreNetwork()">Load More</button>
+  </div>
+
+  <!-- Wallet -->
+  <div id="screen-wallet" class="screen">
+    <div class="wallet-header">
+      <h1>Wallet</h1>
+    </div>
+
+    <!-- Wallet activation notice -->
+    <div id="wallet-activate-banner" style="display:none;margin:0 16px 16px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:16px;">
+      <div style="font-size:13px;color:#f59e0b;font-weight:700;margin-bottom:6px;">🔒 Withdrawals Locked</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:12px;">Pay the ₦10,000 activation fee to unlock withdrawals.</div>
+      <button onclick="payActivationFee()" style="width:100%;background:#f59e0b;color:#000;border:none;border-radius:10px;padding:12px;font-family:'Clash Display',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">💳 Activate — Pay ₦10,000</button>
+    </div>
+
+    <!-- Withdrawal day notice -->
+    <div id="wallet-day-banner" style="display:none;margin:0 16px 16px;background:rgba(77,159,255,0.08);border:1px solid rgba(77,159,255,0.3);border-radius:14px;padding:16px;">
+      <div style="font-size:13px;color:#4d9fff;font-weight:700;margin-bottom:6px;">📅 Withdrawals: Wednesday & Friday Only</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.5);">Today is not a withdrawal day. Come back on Wednesday or Friday.</div>
+      <div style="font-size:12px;color:#4d9fff;margin-top:8px;font-weight:600;">Next withdrawal day: <span id="next-wd-date">—</span></div>
+    </div>
+
+    <div class="big-balance">
+      <div class="big-balance-label">Available Balance</div>
+      <div class="big-balance-amount" id="wallet-balance">₦0</div>
+      <div class="big-balance-earned" id="wallet-earned">Total earned: ₦0</div>
+    </div>
+
+    <div class="withdraw-section">
+      <div class="withdraw-title">Withdraw Funds</div>
+      <div class="withdraw-input-wrap">
+        <div class="amount-row">
+          <div class="currency-label">₦</div>
+          <input class="amount-input" type="number" id="withdraw-amount" placeholder="0">
+        </div>
+        <div class="amount-hint">Minimum: ₦10,000 · Only on Wednesdays & Fridays</div>
+      </div>
+
+      <div class="bank-info">
+        <div class="bank-row">
+          <span class="bank-row-label">Bank</span>
+          <span class="bank-row-val" id="wd-bank">—</span>
+        </div>
+        <div class="bank-row">
+          <span class="bank-row-label">Account</span>
+          <span class="bank-row-val" id="wd-account">—</span>
+        </div>
+      </div>
+
+      <button class="withdraw-btn" onclick="initiateWithdraw()">Request Withdrawal</button>
+    </div>
+
+    <div class="section-title">Transaction History</div>
+    <div id="wallet-txns"></div>
+  </div>
+
+  <!-- Profile -->
+  <div id="screen-profile" class="screen">
+    <div class="profile-header">
+      <div class="profile-avatar" id="profile-avatar">C</div>
+      <div class="profile-name" id="profile-name">—</div>
+      <div class="profile-code" id="profile-code">—</div>
+    </div>
+
+    <div class="profile-list" id="profile-list"></div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" id="bottom-nav" style="display:none">
+    <div class="nav-btn active" onclick="showScreen('home')" id="nav-home">
+      <div class="nav-icon">◈</div>
+      <div class="nav-label">Home</div>
+    </div>
+    <div class="nav-btn" onclick="showScreen('network')" id="nav-network">
+      <div class="nav-icon">◉</div>
+      <div class="nav-label">Network</div>
+    </div>
+    <div class="nav-btn" onclick="showScreen('wallet')" id="nav-wallet">
+      <div class="nav-icon">◆</div>
+      <div class="nav-label">Wallet</div>
+    </div>
+    <div class="nav-btn" onclick="showScreen('profile')" id="nav-profile">
+      <div class="nav-icon">◎</div>
+      <div class="nav-label">Profile</div>
+    </div>
+  </nav>
+
+  <!-- Withdraw Modal -->
+  <div class="modal-overlay" id="withdraw-modal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Confirm Withdrawal</div>
+      <div class="modal-body">
+        <div class="modal-amount" id="modal-amount">₦0</div>
+        <div class="modal-desc" id="modal-desc">To your registered bank account</div>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn modal-btn-cancel" onclick="hideModal()">Cancel</button>
+        <button class="modal-btn modal-btn-confirm" onclick="confirmWithdraw()">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+// ── Config ─────────────────────────────────────────────────────
+const API_BASE = window.location.origin;
+const tg = window.Telegram?.WebApp;
+let currentUser = null;
+let networkData = { gen1:[], gen2:[], gen3:[] };
+let currentGenTab = 1;
+let networkPage = 1;
+
+// ── Init ────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', async () => {
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor('#0d0d14');
+    tg.setBackgroundColor('#0d0d14');
+  }
+
+  // Check referral code in URL
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('ref') || params.get('start');
+  if (ref) {
+    document.getElementById('ref-display').textContent = `✅ Referred by: ${ref}`;
+    document.getElementById('ref-display').classList.add('show');
+    window._referrerCode = ref.toUpperCase();
+  }
+
+  // Fallback — if init takes more than 8 seconds, show register screen
+  const fallback = setTimeout(() => {
+    console.warn('Init timeout — showing register screen');
+    showScreen('register');
+  }, 8000);
+
+  await init();
+  clearTimeout(fallback);
+});
+
+async function init() {
+  // Give Telegram WebApp time to fully initialize
+  await new Promise(r => setTimeout(r, 300));
+
+  try {
+    const res = await apiGet('/api/me');
+
+    if (res.registered) {
+      currentUser = res.user;
+      renderDashboard();
+      showScreen('home');
+      document.getElementById('bottom-nav').style.display = 'flex';
+      // Show activation banner if not yet paid
+      const banner = document.getElementById('activate-banner');
+      if (banner) banner.style.display = res.user.is_active ? 'none' : 'block';
+    } else {
+      showScreen('register');
+    }
+  } catch(e) {
+    console.error('Init error:', e);
+    // On any error just show register screen
+    showScreen('register');
+  }
+}
+
+// ── API helpers ─────────────────────────────────────────────────
+function getHeaders() {
+  const headers = { 'Content-Type': 'application/json' };
+  try {
+    if (tg?.initData && tg.initData.length > 0) {
+      headers['X-Telegram-Init-Data'] = tg.initData;
+    }
+  } catch(e) {}
+  return headers;
+}
+
+async function apiGet(url) {
+  const devSuffix = (!tg?.initData) ? `${url.includes('?')?'&':'?'}dev_id=12345` : '';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+  try {
+    const res = await fetch(API_BASE + url + devSuffix, {
+      headers: getHeaders(),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  } catch(e) {
+    clearTimeout(timeout);
+    throw e;
+  }
+}
+
+async function apiPost(url, body) {
+  const devSuffix = (!tg?.initData) ? `${url.includes('?')?'&':'?'}dev_id=12345` : '';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  try {
+    const res = await fetch(API_BASE + url + devSuffix, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+    return res.json();
+  } catch(e) {
+    clearTimeout(timeout);
+    throw e;
+  }
+}
+
+// ── Screen navigation ───────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const s = document.getElementById('screen-' + name);
+  if (s) s.classList.add('active');
+  const nb = document.getElementById('nav-' + name);
+  if (nb) nb.classList.add('active');
+
+  if (name === 'network') loadNetwork();
+  if (name === 'wallet') renderWallet();
+  if (name === 'profile') renderProfile();
+}
+
+// ── Registration ────────────────────────────────────────────────
+async function submitRegistration() {
+  const name    = document.getElementById('f-name').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const bank    = document.getElementById('f-bank').value;
+  const account = document.getElementById('f-account').value.trim();
+
+  if (!name || !phone || !bank || !account) {
+    showToast('⚠ Please fill all required fields');
+    return;
+  }
+  if (account.length !== 10) {
+    showToast('⚠ Account number must be 10 digits');
+    return;
+  }
+
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Setting up payment...';
+
+  try {
+    const res = await apiPost('/api/register', {
+      full_name:      name,
+      phone,
+      email,
+      bank_name:      bank,
+      account_number: account,
+      referrer_code:  window._referrerCode || '',
+      init_data:      tg?.initData || '',
+    });
+
+    if (res.payment_url) {
+      // Open Paystack in browser
+      if (tg) {
+        tg.openLink(res.payment_url);
+      } else {
+        window.open(res.payment_url, '_blank');
+      }
+      showToast('💳 Payment page opened!');
+      btn.innerHTML = '<span>⏳</span> Waiting for payment...';
+
+      // Poll for account activation
+      pollForActivation();
+    } else {
+      showToast('❌ ' + (res.error || 'Registration failed'));
+      btn.disabled = false;
+      btn.innerHTML = '<span>🚀</span> Register for Free';
+    }
+  } catch(e) {
+    showToast('❌ Network error. Try again.');
+    btn.disabled = false;
+    btn.innerHTML = '<span>🚀</span> Register for Free';
+  }
+}
+
+async function pollForActivation() {
+  let attempts = 0;
+  const poll = setInterval(async () => {
+    attempts++;
+    if (attempts > 72) { clearInterval(poll); return; } // 6 min timeout
+    try {
+      const res = await apiGet('/api/me');
+      if (res.registered && res.user.is_active) {
+        clearInterval(poll);
+        currentUser = res.user;
+        renderDashboard();
+        // Hide activation banner
+        const banner = document.getElementById('activate-banner');
+        if (banner) banner.style.display = 'none';
+        showToast('🎉 Account activated! You can now withdraw.');
+      }
+    } catch(e) {}
+  }, 5000);
+}
+
+// ── Dashboard render ─────────────────────────────────────────────
+function renderDashboard() {
+  if (!currentUser) return;
+  const u = currentUser;
+  const s = u.stats || {};
+
+  document.getElementById('home-name').textContent = u.full_name;
+  document.getElementById('home-balance').textContent = '₦' + fmt(u.wallet_balance);
+  document.getElementById('home-earned').textContent = 'Total earned: ₦' + fmt(u.total_earnings);
+  document.getElementById('qs-gen1').textContent = s.gen1 || 0;
+  document.getElementById('qs-gen2').textContent = s.gen2 || 0;
+  document.getElementById('qs-gen3').textContent = s.gen3 || 0;
+  document.getElementById('ref-link-text').textContent = u.ref_link || '—';
+
+  // Target progress (80 referrals)
+  const pct = Math.min(100, Math.round((s.gen1 || 0) / 80 * 100));
+  document.getElementById('target-pct').textContent = pct + '%';
+  document.getElementById('target-bar').style.width = pct + '%';
+  document.getElementById('track-current').textContent = (s.gen1||0) + ' referrals';
+
+  // Load transactions
+  loadHomeTxns();
+}
+
+async function loadHomeTxns() {
+  try {
+    const res = await apiGet('/api/transactions');
+    const txns = res.transactions || [];
+    const el = document.getElementById('home-txns');
+    if (!txns.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-title">No transactions yet</div><div class="empty-sub">Share your referral link to start earning</div></div>';
+      return;
+    }
+    el.innerHTML = txns.slice(0,5).map(t => txnHTML(t)).join('');
+  } catch(e) {}
+}
+
+function txnHTML(t) {
+  const isCredit = t.type === 'credit';
+  const icon = isCredit ? '💚' : '🔴';
+  const d = new Date(t.created_at).toLocaleDateString('en-NG', {day:'numeric',month:'short'});
+  return `
+  <div class="txn-item">
+    <div class="txn-icon ${isCredit?'credit':'debit'}">${icon}</div>
+    <div class="txn-info">
+      <div class="txn-desc">${t.description}</div>
+      <div class="txn-date">${d}</div>
+    </div>
+    <div class="txn-amount ${isCredit?'credit':'debit'}">${isCredit?'+':'−'}₦${fmt(t.amount)}</div>
+  </div>`;
+}
+
+// ── Network ─────────────────────────────────────────────────────
+async function loadNetwork() {
+  if (!currentUser) return;
+
+  // Update stat headers
+  const s = currentUser.stats || {};
+  document.getElementById('net-g1').textContent = s.gen1||0;
+  document.getElementById('net-g2').textContent = s.gen2||0;
+  document.getElementById('net-g3').textContent = s.gen3||0;
+  document.getElementById('net-g1-earn').textContent = '₦'+fmt((s.gen1||0)*1500);
+  document.getElementById('net-g2-earn').textContent = '₦'+fmt((s.gen2||0)*1000);
+  document.getElementById('net-g3-earn').textContent = '₦'+fmt((s.gen3||0)*500);
+
+  renderNetworkList();
+}
+
+function setGenTab(gen) {
+  currentGenTab = gen;
+  document.querySelectorAll('.gen-tab').forEach(t => t.className = 'gen-tab');
+  document.getElementById('tab-g'+gen).className = `gen-tab active-g${gen}`;
+  renderNetworkList();
+}
+
+async function renderNetworkList() {
+  const el = document.getElementById('network-list');
+  el.innerHTML = '<div class="empty-state"><div class="spinner" style="margin:0 auto"></div></div>';
+
+  try {
+    const res = await apiGet(`/api/network?page=1&per_page=50`);
+    const members = res.members || [];
+
+    // Since API returns gen1, we simulate gen2/3 from client side for demo
+    // In production, separate endpoints would return each gen
+    const filtered = members; // All are gen1 from direct API
+
+    if (!filtered.length) {
+      el.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">👥</div>
+          <div class="empty-title">No Gen ${currentGenTab} members yet</div>
+          <div class="empty-sub">Share your referral link to grow your Gen ${currentGenTab} network. Your target is 80+ direct referrals!</div>
+        </div>`;
+      return;
+    }
+
+    const colors = ['green','purple','orange'];
+    const cl = colors[currentGenTab-1];
+
+    el.innerHTML = filtered.map(m => `
+      <div class="member-item">
+        <div class="member-avatar">${m.full_name[0]}</div>
+        <div class="member-info">
+          <div class="member-name">${m.full_name}</div>
+          <div class="member-sub">Joined ${new Date(m.created_at).toLocaleDateString('en-NG',{day:'numeric',month:'short',year:'numeric'})} · ${m.their_gen1||0} referrals</div>
+        </div>
+        <div class="member-badge badge-g${currentGenTab}">Gen ${currentGenTab}</div>
+      </div>
+    `).join('');
+
+    const btn = document.getElementById('load-more-btn');
+    if (res.has_more) {
+      btn.classList.remove('hidden');
+    } else {
+      btn.classList.add('hidden');
+    }
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-sub">Failed to load network</div></div>';
+  }
+}
+
+async function loadMoreNetwork() {
+  networkPage++;
+  // In production: fetch next page and append
+  showToast('Loading more...');
+}
+
+// ── Wallet ──────────────────────────────────────────────────────
+async function renderWallet() {
+  if (!currentUser) return;
+  const u = currentUser;
+  document.getElementById('wallet-balance').textContent = '₦' + fmt(u.wallet_balance);
+  document.getElementById('wallet-earned').textContent = 'Total earned: ₦' + fmt(u.total_earnings);
+  document.getElementById('wd-bank').textContent = u.bank_name || '—';
+  document.getElementById('wd-account').textContent = u.account_number || '—';
+
+  // Show/hide lock banner
+  const wb = document.getElementById('wallet-activate-banner');
+  if (wb) wb.style.display = u.is_active ? 'none' : 'block';
+
+  // Dim withdraw button if not active
+  const wBtn = document.querySelector('.withdraw-btn');
+  if (wBtn) {
+    wBtn.textContent = u.is_active ? 'Request Withdrawal' : '🔒 Activate to Withdraw';
+    wBtn.style.background = u.is_active ? '#a78bfa' : '#3a3a55';
+    wBtn.style.color = u.is_active ? '#000' : '#6b7280';
+  }
+
+  try {
+    const res = await apiGet('/api/transactions');
+    const txns = res.transactions || [];
+    const el = document.getElementById('wallet-txns');
+    if (!txns.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-sub">No transactions yet</div></div>';
+      return;
+    }
+    el.innerHTML = txns.map(t => txnHTML(t)).join('');
+  } catch(e) {}
+}
+
+let pendingWithdrawAmount = 0;
+
+function initiateWithdraw() {
+  const screen = document.getElementById('screen-wallet');
+
+  // Gate 1 — must be activated
+  if (!currentUser?.is_active) {
+    showToast('🔒 Pay ₦10,000 to unlock withdrawals');
+    screen.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+
+  // Gate 2 — withdrawal day only
+  if (!currentUser?.withdrawal_day) {
+    showToast(`📅 Withdrawals only on Wednesday & Friday`);
+    screen.scrollTo({top:0,behavior:'smooth'});
+    return;
+  }
+
+  const amount = parseFloat(document.getElementById('withdraw-amount').value);
+
+  // Gate 3 — minimum ₦10,000
+  if (!amount || amount < 10000) { showToast('⚠ Minimum withdrawal is ₦10,000'); return; }
+  if (amount > (currentUser?.wallet_balance || 0)) { showToast('❌ Insufficient balance'); return; }
+
+  pendingWithdrawAmount = amount;
+  document.getElementById('modal-amount').textContent = '₦' + fmt(amount);
+  document.getElementById('modal-desc').textContent = `To ${currentUser.bank_name} · ${currentUser.account_number} · Auto-transfer`;
+  document.getElementById('withdraw-modal').classList.add('show');
+}
+
+async function confirmWithdraw() {
+  hideModal();
+  try {
+    const res = await apiPost('/api/withdraw', { amount: pendingWithdrawAmount });
+    if (res.withdrawal_id) {
+      showToast('✅ Transfer initiated! Money arrives in minutes.');
+      currentUser.wallet_balance -= pendingWithdrawAmount;
+      renderWallet();
+      document.getElementById('withdraw-amount').value = '';
+    } else {
+      showToast('❌ ' + (res.error || 'Withdrawal failed'));
+    }
+  } catch(e) {
+    showToast('❌ Network error');
+  }
+}
+
+function hideModal() {
+  document.getElementById('withdraw-modal').classList.remove('show');
+}
+
+// ── Profile ─────────────────────────────────────────────────────
+function renderProfile() {
+  if (!currentUser) return;
+  const u = currentUser;
+  const initial = u.full_name?.[0]?.toUpperCase() || 'C';
+
+  document.getElementById('profile-avatar').textContent = initial;
+  document.getElementById('profile-name').textContent = u.full_name;
+  document.getElementById('profile-code').textContent = u.referral_code;
+
+  // Show activation status below avatar
+  const existingStatus = document.getElementById('profile-status');
+  if (existingStatus) existingStatus.remove();
+  const statusEl = document.createElement('div');
+  statusEl.id = 'profile-status';
+  statusEl.style.cssText = 'margin-top:10px;';
+  if (u.is_active) {
+    statusEl.innerHTML = '<span style="background:rgba(0,229,160,0.12);border:1px solid rgba(0,229,160,0.3);color:#00e5a0;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;">✅ Active Member</span>';
+  } else {
+    statusEl.innerHTML = '<span style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:#f59e0b;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;" onclick="payActivationFee()">⚠️ Pending Activation — Tap to Pay</span>';
+  }
+  document.getElementById('profile-header-inner')?.appendChild(statusEl) || document.querySelector('.profile-header')?.appendChild(statusEl);
+
+  const stats = u.stats || {};
+  const total = (stats.gen1||0) + (stats.gen2||0) + (stats.gen3||0);
+
+  document.getElementById('profile-list').innerHTML = `
+    <div class="profile-item">
+      <div class="profile-item-left">
+        <div class="profile-item-icon" style="background:rgba(0,229,160,0.1)">📱</div>
+        <div>
+          <div class="profile-item-label">Phone</div>
+          <div class="profile-item-val">${u.phone}</div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-item">
+      <div class="profile-item-left">
+        <div class="profile-item-icon" style="background:rgba(139,92,246,0.1)">🏦</div>
+        <div>
+          <div class="profile-item-label">Bank</div>
+          <div class="profile-item-val">${u.bank_name}</div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-item">
+      <div class="profile-item-left">
+        <div class="profile-item-icon" style="background:rgba(249,115,22,0.1)">💳</div>
+        <div>
+          <div class="profile-item-label">Account Number</div>
+          <div class="profile-item-val">${u.account_number}</div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-item">
+      <div class="profile-item-left">
+        <div class="profile-item-icon" style="background:rgba(0,229,160,0.1)">👥</div>
+        <div>
+          <div class="profile-item-label">Total Network</div>
+          <div class="profile-item-val">${total} members</div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-item">
+      <div class="profile-item-left">
+        <div class="profile-item-icon" style="background:rgba(245,158,11,0.1)">💰</div>
+        <div>
+          <div class="profile-item-label">Total Earnings</div>
+          <div class="profile-item-val green">₦${fmt(u.total_earnings)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="profile-item" style="cursor:pointer" onclick="shareRef()">
+      <div class="profile-item-left">
+        <div class="profile-item-icon" style="background:rgba(139,92,246,0.1)">🔗</div>
+        <div>
+          <div class="profile-item-label">Referral Code</div>
+          <div class="profile-item-val purple">${u.referral_code}</div>
+        </div>
+      </div>
+      <div class="profile-item-arrow">↗</div>
+    </div>
+  `;
+}
+
+// ── Share & Copy ─────────────────────────────────────────────────
+function copyRef() {
+  const link = currentUser?.ref_link || '';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(() => showToast('✅ Link copied!'));
+  } else {
+    showToast('✅ Link: ' + link);
+  }
+}
+
+function shareRef() {
+  const link = currentUser?.ref_link || '';
+  const text = `🚀 Join CalmMart Ltd and earn money!\n\nRegister with my referral link and start building your network.\n\nEarn ₦1,500 for every person you refer!\n\n👇\n${link}`;
+  if (tg) {
+    tg.switchInlineQuery(text);
+  } else if (navigator.share) {
+    navigator.share({ title: 'Join CalmMart', text, url: link });
+  } else {
+    copyRef();
+  }
+}
+
+// ── Utilities ────────────────────────────────────────────────────
+function fmt(n) {
+  return Number(n || 0).toLocaleString('en-NG');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
