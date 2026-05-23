@@ -1119,10 +1119,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     window._referrerCode = ref.toUpperCase();
   }
 
-  // Fallback — if init takes more than 8 seconds, show register screen
+  // Fallback — if init takes more than 8 seconds, show button
   const fallback = setTimeout(() => {
-    console.warn('Init timeout — showing register screen');
-    showScreen('register');
+    console.warn('Init timeout');
+    const loader = document.getElementById('screen-loading');
+    if (loader) {
+      loader.innerHTML = `<div style="padding:32px;color:#fff;font-family:monospace;font-size:13px;text-align:center">
+        <div style="color:#00e5a0;font-size:24px;margin-bottom:16px">CalmMart</div>
+        <div style="color:#ffb547;margin-bottom:8px">Connection timeout</div>
+        <div style="color:#aaa;font-size:12px;margin-bottom:8px">Server: ${API_BASE}</div>
+        <div style="color:#aaa;font-size:11px;margin-bottom:20px">TG data: ${tg?.initData ? 'present' : 'missing'}</div>
+        <button onclick="showScreen('register')" style="background:#00e5a0;color:#000;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Continue to Register</button>
+      </div>`;
+    }
   }, 8000);
 
   await init();
@@ -1133,8 +1142,14 @@ async function init() {
   // Give Telegram WebApp time to fully initialize
   await new Promise(r => setTimeout(r, 300));
 
+  console.log('Init started');
+  console.log('API_BASE:', API_BASE);
+  console.log('Telegram initData:', tg?.initData ? 'present' : 'missing');
+
   try {
+    console.log('Calling /api/me...');
     const res = await apiGet('/api/me');
+    console.log('Response:', JSON.stringify(res));
 
     if (res.registered) {
       currentUser = res.user;
@@ -1149,8 +1164,17 @@ async function init() {
     }
   } catch(e) {
     console.error('Init error:', e);
-    // On any error just show register screen
-    showScreen('register');
+    // Show the error on screen temporarily for debugging
+    const loader = document.getElementById('screen-loading');
+    if (loader) {
+      loader.innerHTML = `<div style="padding:32px;color:#fff;font-family:monospace;font-size:13px;text-align:center">
+        <div style="color:#00e5a0;font-size:24px;margin-bottom:16px">CalmMart</div>
+        <div style="color:#ff4b6e;margin-bottom:8px">Error loading app:</div>
+        <div style="color:#aaa;word-break:break-all;margin-bottom:16px">${e.message || 'Unknown error'}</div>
+        <div style="color:#aaa;font-size:11px;margin-bottom:16px">API: ${API_BASE}</div>
+        <button onclick="showScreen('register')" style="background:#00e5a0;color:#000;border:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Continue to Register</button>
+      </div>`;
+    }
   }
 }
 
